@@ -10,3 +10,11 @@
 [[edge_functions]]
   path = "/admin.html"
   function = "admin-auth"
+
+# The homepage file isn't named index.html (kept as
+# solterra-landing-au-solarfirst.html for local file:// testing and doc
+# references), so rewrite "/" to it - status 200 keeps the URL bar clean.
+[[redirects]]
+  from = "/"
+  to = "/solterra-landing-au-solarfirst.html"
+  status = 200
