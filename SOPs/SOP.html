@@ -175,6 +175,8 @@
           <tr><td>Recovery follow-up copy</td><td class="mono">n8n workflow 4 → "Pick Recovery Message" node</td><td>Edit the node's code directly in n8n</td></tr>
           <tr><td>HubSpot custom properties, pipeline stages</td><td class="mono">HubSpot itself</td><td>HubSpot Settings → Properties / Pipelines</td></tr>
           <tr><td>Website pricing figures, FAQ content, copy</td><td class="mono">solterra-landing-au-solarfirst.html</td><td>Edit the file directly</td></tr>
+          <tr><td><code>admin.html</code> page password</td><td class="mono">config.js → <code>settingsPassword</code></td><td>Edit the file, redeploy — see <code>settings-access-guide.md</code></td></tr>
+          <tr><td><code>admin.html</code> host-level lockdown (Basic Auth)</td><td class="mono">Vercel/Netlify environment variables — <code>ADMIN_BASIC_AUTH_USER</code> / <code>ADMIN_BASIC_AUTH_PASS</code></td><td>Hosting dashboard → Environment Variables, then redeploy — see <code>Documentation/deploy-lockdown-guide.md</code></td></tr>
         </tbody>
       </table>
     </div>
@@ -234,6 +236,12 @@
       <div class="cause">Page Access Token expired (short-lived tokens expire — use a long-lived or System User token), or the Instagram account isn't actually linked to the same Page as the app.</div>
       <div class="fix"><b>Fix:</b> Re-generate the token in Meta's dashboard, confirm IG Business account link under Page settings, re-save in n8n <code>.env</code>.</div>
     </div>
+
+    <div class="symptom-card">
+      <div class="symptom">Can't log into <code>admin.html</code> — browser's login popup rejects correct-looking credentials</div>
+      <div class="cause">Almost always a mismatch between what's typed into the Vercel/Netlify Environment Variables form and what's typed into the browser prompt — commonly the username ends up typed into the variable's <em>Key</em> field instead of its <em>Value</em> field. Once a variable is marked "Sensitive," its value can't be read back to check — not even via <code>vercel env pull</code>.</div>
+      <div class="fix"><b>Fix:</b> Don't try to guess what's wrong. Remove both variables (<code>vercel env rm ADMIN_BASIC_AUTH_USER production</code>, repeat for <code>_PASS</code> and the <code>preview</code> environment) and re-add them fresh, then redeploy. See <code>Documentation/deploy-lockdown-guide.md</code> for the exact commands.</div>
+    </div>
   </section>
 
   <section id="s6">
@@ -257,6 +265,13 @@
       <li>Generate the new key at the provider (don't delete the old one until the new one's confirmed working).</li>
       <li>Update the value in n8n <code>.env</code>, save/restart n8n if your host requires it for env changes to take effect.</li>
       <li>Run one test message through that specific channel, confirm it in n8n Executions, then revoke the old key.</li>
+    </ol>
+    <h3>Rotate the <code>admin.html</code> host-level lockdown credentials</h3>
+    <ol class="steps">
+      <li>Hosting dashboard → Environment Variables → remove <code>ADMIN_BASIC_AUTH_USER</code> / <code>ADMIN_BASIC_AUTH_PASS</code> (or edit their values in place, if the platform allows it).</li>
+      <li>Add the new values, applied to Production (and Preview, if used).</li>
+      <li>Redeploy — env var changes only take effect on a fresh deployment.</li>
+      <li>Confirm from outside before relying on it: <code>curl -o /dev/null -w "%{http_code}" https://your-domain/admin.html</code> should return <code>401</code> with no credentials, <code>200</code> with <code>-u user:pass</code>.</li>
     </ol>
     <h3>Reskin the whole site for a new client</h3>
     <p class="note">See <code>website/REBRAND-GUIDE.md</code> — a 5-step, ~15-minute process.</p>

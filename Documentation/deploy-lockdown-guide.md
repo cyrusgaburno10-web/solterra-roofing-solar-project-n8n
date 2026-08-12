@@ -91,6 +91,32 @@ VPS)? The same idea applies but the mechanism differs:
 - **A VPS with Nginx/Apache** → standard HTTP Basic Auth (`.htpasswd`) on
   the `/admin.html` location block — the oldest version of this same idea.
 
+## Mistakes that actually happened during setup (learn from these)
+
+- **The Key field in "Add Environment Variable" must be the literal text
+  `ADMIN_BASIC_AUTH_USER`** — not the username itself. It's easy to
+  accidentally type your chosen username into the Key box and your password
+  into the Value box, leaving no variable named `ADMIN_BASIC_AUTH_USER` at
+  all. If Vercel/Netlify flag the Key as "invalid," that's usually why —
+  you're trying to use a value as a variable name.
+- **The homepage 404'd on first deploy** because this site's homepage file
+  isn't named `index.html` (kept as `solterra-landing-au-solarfirst.html`
+  on purpose, for local `file://` testing and the docs that reference it).
+  `Website/vercel.json` and the `[[redirects]]` block in `Website/netlify.toml`
+  both rewrite `/` to that file — already fixed, but if you ever rename the
+  homepage file, update the rewrite target in both places too.
+- **If you set up the Vercel CLI locally**, run `vercel link` and
+  `vercel --prod` from the **repo root**, not from inside `Website/` — the
+  project's Root Directory setting (`Website`) is relative to wherever you
+  link from, so linking from inside `Website/` makes it look for a
+  nonexistent `Website/Website`.
+- **If credentials stop working and you can't tell why**: env vars marked
+  "Sensitive" in Vercel can't be read back, even via `vercel env pull` (the
+  value just shows as hidden). Don't try to guess what's wrong — remove
+  both (`vercel env rm ADMIN_BASIC_AUTH_USER production`, same for `_PASS`
+  and for the `preview` environment) and re-add them fresh with
+  `vercel env add`, then redeploy. Faster than debugging a value you can't see.
+
 ## After this is live
 
 - Bookmark `https://your-domain.com/admin.html` — it's still not linked

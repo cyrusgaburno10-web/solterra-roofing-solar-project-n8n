@@ -20,8 +20,10 @@ so `config.js`/`images/` resolve correctly.
 - `middleware.js` — Vercel Edge Middleware that locks `admin.html` behind a
   real, host-enforced login (not just the page's own password prompt). See
   `Documentation/deploy-lockdown-guide.md`.
+- `vercel.json` — rewrites `/` to `solterra-landing-au-solarfirst.html`, since
+  the homepage file isn't literally named `index.html`
 - `netlify.toml` / `netlify/edge-functions/admin-auth.js` — the Netlify
-  equivalent of `middleware.js`, same purpose.
+  equivalent of `middleware.js` and `vercel.json` combined, same purpose.
 
 **Launch readiness:** open `admin.html` directly (its own page, not linked from the
 site — see `Documentation/settings-access-guide.md`), unlock with your settings
@@ -72,6 +74,17 @@ Ongoing operations, not one-time setup.
 Original source photos as provided, before any cropping/renaming for the site.
 
 ---
+
+## Live site deployment
+
+- **Source repo:** https://github.com/cyrusgaburno10-web/solterra-roofing-solar-project-n8n
+  (public — no real secrets are committed; API keys live only in n8n's own `.env`, never here)
+- **Live site:** https://solterra-roofing-solar-project-n8n.vercel.app — deployed via Vercel,
+  Root Directory set to `Website`, auto-redeploys on every push to `main`
+- **Settings page:** the same domain + `/admin.html` — gated by both the Vercel host-level
+  Basic Auth lockdown and the page's own password prompt; see `Documentation/deploy-lockdown-guide.md`
+- Local project is linked to this Vercel project via the CLI — `vercel --prod` from the repo
+  root deploys immediately without going through the dashboard
 
 ## Live published copies
 
