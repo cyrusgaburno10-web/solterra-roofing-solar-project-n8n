@@ -1,0 +1,1063 @@
+{
+  "name": "01 - AI Agent - Inbound Intake",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "id": "wh-telegram",
+      "name": "Telegram Inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf1-telegram",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "wh-meta-verify",
+      "name": "Meta Verify",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "wf1-meta",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "wh-meta-inbound",
+      "name": "Meta Inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        340
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf1-meta",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "wh-wa-verify",
+      "name": "WhatsApp Verify",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        500
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "wf1-whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "wh-wa-inbound",
+      "name": "WhatsApp Inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        660
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf1-whatsapp",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "wh-website",
+      "name": "Website Inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        840
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf1-website",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      }
+    },
+    {
+      "id": "code-meta-challenge",
+      "name": "Build Meta Challenge Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        180
+      ],
+      "parameters": {
+        "jsCode": "const q = $input.item.json.query || {};\nconst verifyToken = $env.META_VERIFY_TOKEN;\nif (q['hub.mode'] === 'subscribe' && q['hub.verify_token'] === verifyToken) {\n  return { json: { challenge: q['hub.challenge'] } };\n}\nreturn { json: { challenge: 'verification-failed' } };"
+      }
+    },
+    {
+      "id": "respond-meta-challenge",
+      "name": "Respond Meta Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        180
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.challenge }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "code-wa-challenge",
+      "name": "Build WhatsApp Challenge Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        500
+      ],
+      "parameters": {
+        "jsCode": "const q = $input.item.json.query || {};\nconst verifyToken = $env.WHATSAPP_VERIFY_TOKEN;\nif (q['hub.mode'] === 'subscribe' && q['hub.verify_token'] === verifyToken) {\n  return { json: { challenge: q['hub.challenge'] } };\n}\nreturn { json: { challenge: 'verification-failed' } };"
+      }
+    },
+    {
+      "id": "respond-wa-challenge",
+      "name": "Respond WhatsApp Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        500
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.challenge }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "code-unify",
+      "name": "Normalize & Unify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        700
+      ],
+      "parameters": {
+        "jsCode": "// Detects which channel sent this webhook by payload shape and produces one common object.\nconst body = $input.item.json.body || $input.item.json;\nlet out = { channel: null, external_id: null, text: '', contact_name: '', phone: '', postcode: '', interest: '', ai_provider: '' };\n\nif (body.message && body.message.chat && body.message.chat.id) {\n  // Telegram\n  out.channel = 'telegram';\n  out.external_id = 'telegram:' + body.message.chat.id;\n  out.text = body.message.text || '';\n  out.contact_name = [body.message.from.first_name, body.message.from.last_name].filter(Boolean).join(' ');\n} else if (body.entry && body.entry[0] && body.entry[0].messaging) {\n  // Meta Messenger / Instagram DM (same webhook shape)\n  const m = body.entry[0].messaging[0];\n  const isInstagram = !!body.entry[0].id && body.object === 'instagram';\n  out.channel = isInstagram ? 'instagram' : 'meta';\n  out.external_id = (isInstagram ? 'instagram:' : 'messenger:') + m.sender.id;\n  out.text = (m.message && m.message.text) || '';\n} else if (body.entry && body.entry[0] && body.entry[0].changes && body.entry[0].changes[0].value.messages) {\n  // WhatsApp Cloud API\n  const v = body.entry[0].changes[0].value;\n  const msg = v.messages[0];\n  out.channel = 'whatsapp';\n  out.external_id = 'whatsapp:' + msg.from;\n  out.text = (msg.text && msg.text.body) || '';\n  const contact = (v.contacts || [])[0];\n  out.contact_name = contact ? contact.profile.name : '';\n} else {\n  // Website widget - our own JSON shape: { session_id, text, name, phone?, postcode?, interest? }\n  // The quote form sends phone/postcode/interest on first submit; the chat bubble sends text only.\n  out.channel = 'website';\n  out.external_id = 'website:' + body.session_id;\n  out.text = body.text || '';\n  out.contact_name = body.name || '';\n  out.phone = body.phone || '';\n  out.postcode = body.postcode || '';\n  out.interest = body.interest || '';\n  out.ai_provider = body.ai_provider || '';\n}\n\nreturn { json: out };"
+      }
+    },
+    {
+      "id": "http-hubspot-search",
+      "name": "HubSpot Search Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        700
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterGroups: [ { filters: [ { propertyName: 'external_chat_id', operator: 'EQ', value: $('Normalize & Unify').item.json.external_id } ] } ], properties: ['lead_source','lead_score','job_type','urgency','preferred_channel','external_chat_id','financing_interest','drip_stage','last_ai_contact_at','storm_lead','city','zip'] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-build-prompt",
+      "name": "Build AI Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        700
+      ],
+      "parameters": {
+        "jsCode": "const lead = $('Normalize & Unify').item.json;\nconst hs = $json.results && $json.results[0];\nconst contactId = hs ? hs.id : null;\n\nconst knownFromForm = {};\nif (lead.phone) knownFromForm.phone = lead.phone;\nif (lead.postcode) knownFromForm.zip = lead.postcode;\nif (lead.interest) knownFromForm.job_type_hint = lead.interest;\nconst known = { ...knownFromForm, ...(hs ? hs.properties : {}) };\n\nconst systemPrompt = `You are the intake assistant for ${$env.BUSINESS_NAME}, an AU roofing and solar installation company. You are messaging directly with a potential customer over ${lead.channel}. Be warm, concise (2-3 sentences max per reply), and use plain Australian English - no corporate language.\n\nYour job each turn:\n1. Read what's already known about this lead (below) and their latest message.\n2. Ask for ONE missing piece of information at a time - never a long questionnaire.\n3. Once you have suburb, job type, urgency, and owner-occupier status, you have enough to score the lead.\n4. Score HOT if there is active leak/storm damage, or the lead is ready to book this week. Score WARM if they are a genuine prospect within 3 months. Score COLD if they are researching or more than 3 months out. Score UNQUALIFIED if they are a renter with no owner involvement, or outside the service area.\n5. Set ready_to_book=true only once job_type, suburb and urgency are known AND the lead has agreed to book an inspection/quote.\n6. Set escalate_to_human=true if: the job sounds like a full re-roof or solar+battery combo (high value), you are not confident answering something, or the lead is upset or complaining.\n7. If the lead came from the website or another channel with no ongoing chat session, ask once whether Telegram, WhatsApp or SMS is best for follow-up, and capture whatever contact detail that needs (phone number for SMS).\n8. Always call the capture_lead tool with your update, including the exact reply_to_lead text to send back.\n\nKnown so far: ${JSON.stringify(known)}\nService area postcodes: ${$env.SERVICE_POSTCODES}\nCurrent STC rebate note (use once, naturally, if job_type includes solar): \"${$env.STC_MESSAGE}\"`;\n\n// ---- Provider dispatch ----\n// The website can request a provider via its \"AI model\" setting (sent as lead.ai_provider);\n// every other channel (Telegram/FB/IG/WhatsApp) uses the server-side default. Whichever\n// provider runs, its API key stays in n8n's env vars - it never touches the browser.\nconst provider = (lead.ai_provider || $env.AI_PROVIDER_DEFAULT || 'anthropic').toLowerCase();\n\n// Same tool, described three ways - each provider's function-calling schema differs.\nconst toolProps = {\n  full_name: 'string', suburb: 'string', postcode: 'string', owner_occupier: 'boolean',\n  job_type: 'string', urgency: 'string', roof_or_bill_details: 'string',\n  finance_interest: 'boolean', timeframe: 'string', lead_score: 'string',\n  ready_to_book: 'boolean', escalate_to_human: 'boolean', reply_to_lead: 'string'\n};\nconst enums = {\n  job_type: ['repair','restoration','reroof','solar','solar_battery','unknown'],\n  urgency: ['emergency','planning','unknown'],\n  lead_score: ['hot','warm','cold','unqualified']\n};\nconst required = ['lead_score','ready_to_book','escalate_to_human','reply_to_lead'];\nconst toolDescription = \"Record or update this lead's qualification details based on the conversation so far.\";\n\nlet url, header1Name, header1Value, header2Name, header2Value, body;\n\nif (provider === 'gemini') {\n  const model = $env.GEMINI_MODEL || 'gemini-2.5-flash';\n  url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;\n  header1Name = 'x-goog-api-key'; header1Value = $env.GOOGLE_AI_API_KEY;\n  header2Name = 'X-Unused'; header2Value = '';\n  const properties = {};\n  for (const [k, t] of Object.entries(toolProps)) {\n    properties[k] = { type: t.toUpperCase() };\n    if (enums[k]) properties[k].enum = enums[k];\n  }\n  body = {\n    systemInstruction: { parts: [{ text: systemPrompt }] },\n    contents: [{ role: 'user', parts: [{ text: lead.text }] }],\n    tools: [{ functionDeclarations: [{ name: 'capture_lead', description: toolDescription, parameters: { type: 'OBJECT', properties, required } }] }],\n    toolConfig: { functionCallingConfig: { mode: 'ANY', allowedFunctionNames: ['capture_lead'] } }\n  };\n} else if (provider === 'grok') {\n  const model = $env.GROK_MODEL || 'grok-4-0709';\n  url = 'https://api.x.ai/v1/chat/completions';\n  header1Name = 'Authorization'; header1Value = 'Bearer ' + $env.XAI_API_KEY;\n  header2Name = 'X-Unused'; header2Value = '';\n  const properties = {};\n  for (const [k, t] of Object.entries(toolProps)) {\n    properties[k] = { type: t };\n    if (enums[k]) properties[k].enum = enums[k];\n  }\n  body = {\n    model,\n    messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: lead.text }],\n    tools: [{ type: 'function', function: { name: 'capture_lead', description: toolDescription, parameters: { type: 'object', properties, required } } }],\n    tool_choice: { type: 'function', function: { name: 'capture_lead' } }\n  };\n} else {\n  url = 'https://api.anthropic.com/v1/messages';\n  header1Name = 'x-api-key'; header1Value = $env.ANTHROPIC_API_KEY;\n  header2Name = 'anthropic-version'; header2Value = '2023-06-01';\n  const properties = {};\n  for (const [k, t] of Object.entries(toolProps)) {\n    properties[k] = { type: t };\n    if (enums[k]) properties[k].enum = enums[k];\n  }\n  body = {\n    model: 'claude-sonnet-5',\n    max_tokens: 600,\n    system: systemPrompt,\n    messages: [{ role: 'user', content: lead.text }],\n    tools: [{ name: 'capture_lead', description: toolDescription, input_schema: { type: 'object', properties, required } }],\n    tool_choice: { type: 'tool', name: 'capture_lead' }\n  };\n}\n\nreturn { json: { lead, known, contactId, provider, url, header1Name, header1Value, header2Name, header2Value, body: JSON.stringify(body) } };"
+      }
+    },
+    {
+      "id": "http-claude",
+      "name": "Call AI Model",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        700
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "={{ $json.header1Name }}",
+              "value": "={{ $json.header1Value }}"
+            },
+            {
+              "name": "={{ $json.header2Name }}",
+              "value": "={{ $json.header2Value }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-parse-claude",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        700
+      ],
+      "parameters": {
+        "jsCode": "const lead = $('Normalize & Unify').item.json;\nconst prompt = $('Build AI Request').item.json;\nconst provider = prompt.provider;\n\nlet data;\ntry {\n  if (provider === 'gemini') {\n    const parts = (($json.candidates || [])[0] || {}).content?.parts || [];\n    const fc = parts.find(p => p.functionCall);\n    data = fc ? fc.functionCall.args : null;\n  } else if (provider === 'grok') {\n    const toolCall = (($json.choices || [])[0] || {}).message?.tool_calls?.[0];\n    data = toolCall ? JSON.parse(toolCall.function.arguments) : null;\n  } else {\n    const toolUse = ($json.content || []).find(c => c.type === 'tool_use');\n    data = toolUse ? toolUse.input : null;\n  }\n} catch (e) {\n  data = null;\n}\n\nif (!data) {\n  data = { lead_score: 'cold', ready_to_book: false, escalate_to_human: true, reply_to_lead: \"Thanks, one of our team will be in touch shortly.\" };\n}\n\nreturn { json: {\n  channel: lead.channel,\n  external_id: lead.external_id,\n  contact_name: data.full_name || lead.contact_name,\n  contactId: prompt.contactId,\n  suburb: data.suburb || '',\n  postcode: data.postcode || '',\n  owner_occupier: !!data.owner_occupier,\n  job_type: data.job_type || 'unknown',\n  urgency: data.urgency || 'unknown',\n  roof_or_bill_details: data.roof_or_bill_details || '',\n  finance_interest: !!data.finance_interest,\n  timeframe: data.timeframe || '',\n  lead_score: data.lead_score || 'cold',\n  ready_to_book: !!data.ready_to_book,\n  escalate_to_human: !!data.escalate_to_human,\n  reply_to_lead: data.reply_to_lead,\n  ai_provider_used: provider\n} };"
+      }
+    },
+    {
+      "id": "if-contact-exists",
+      "name": "Contact Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        700
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.contactId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-update-contact",
+      "name": "Update Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1620,
+        620
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.contactId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { lead_source: $('Normalize & Unify').item.json.channel, lead_score: $json.lead_score, job_type: $json.job_type, urgency: $json.urgency, preferred_channel: $json.channel, external_chat_id: $json.external_id, financing_interest: $json.finance_interest, drip_stage: $json.ready_to_book ? 'booked' : 'day0', last_ai_contact_at: Date.now(), city: $json.suburb, zip: $json.postcode } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-create-contact",
+      "name": "Create Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1620,
+        780
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { firstname: $json.contact_name, lead_source: $json.channel, lead_score: $json.lead_score, job_type: $json.job_type, urgency: $json.urgency, preferred_channel: $json.channel, external_chat_id: $json.external_id, financing_interest: $json.finance_interest, drip_stage: $json.ready_to_book ? 'booked' : 'day0', last_ai_contact_at: Date.now(), city: $json.suburb, zip: $json.postcode } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-merge-contact-id",
+      "name": "Merge Contact ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        700
+      ],
+      "parameters": {
+        "jsCode": "const lead = $('Parse AI Response').item.json;\nconst hsId = $json.id;\nreturn { json: { ...lead, contactId: hsId } };"
+      }
+    },
+    {
+      "id": "code-note",
+      "name": "Add Qualitative Note",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2060,
+        700
+      ],
+      "parameters": {
+        "jsCode": "// Free-text detail (owner-occupier, bill/roof notes, timeframe) goes on a Note engagement,\n// not a custom property - keeps us inside HubSpot Free's 10-custom-property cap.\nconst d = $json;\nconst noteBody = `Owner-occupier: ${d.owner_occupier}\\nDetails: ${d.roof_or_bill_details}\\nTimeframe: ${d.timeframe}\\nLast message: ${$('Normalize & Unify').item.json.text}`;\nreturn { json: { ...d, noteBody } };"
+      }
+    },
+    {
+      "id": "http-add-note",
+      "name": "HubSpot Add Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2280,
+        700
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/notes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { hs_note_body: $json.noteBody, hs_timestamp: Date.now() }, associations: [ { to: { id: $json.contactId }, types: [ { associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 } ] } ] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "if-ready-to-book",
+      "name": "Ready To Book?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2500,
+        700
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.ready_to_book && ($json.lead_score === 'hot' || $json.lead_score === 'warm') }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-deal-qualified",
+      "name": "Upsert Deal - Qualified",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2720,
+        620
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { dealname: ($('Normalize & Unify').item.json.contact_name || 'New lead') + ' - ' + $json.job_type, dealstage: $env.HUBSPOT_STAGE_QUALIFIED, pipeline: $env.HUBSPOT_PIPELINE_ID }, associations: [ { to: { id: $json.contactId }, types: [ { associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 } ] } ] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-deal-nurture",
+      "name": "Upsert Deal - Nurture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2720,
+        780
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { dealname: ($('Normalize & Unify').item.json.contact_name || 'New lead') + ' - ' + $json.job_type, dealstage: $env.HUBSPOT_STAGE_NURTURE, pipeline: $env.HUBSPOT_PIPELINE_ID }, associations: [ { to: { id: $json.contactId }, types: [ { associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 } ] } ] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "if-escalate",
+      "name": "Escalate To Human?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2940,
+        700
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Parse AI Response').item.json.escalate_to_human }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-notify-ops",
+      "name": "Notify Ops (Telegram)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3160,
+        620
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_OPS_CHAT_ID, text: 'High-priority lead needs a human:\\n' + ($('Normalize & Unify').item.json.contact_name || 'Unknown') + ' - ' + $('Parse AI Response').item.json.job_type + ' (' + $('Parse AI Response').item.json.lead_score + ')\\nSuburb: ' + $('Parse AI Response').item.json.suburb + '\\nHubSpot: https://app.hubspot.com/contacts/' + $env.HUBSPOT_PORTAL_ID + '/contact/' + $('Merge Contact ID').item.json.contactId }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "switch-route-reply",
+      "name": "Route Reply By Channel",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        3380,
+        700
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse AI Response').item.json.channel }}",
+                    "rightValue": "telegram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "telegram"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse AI Response').item.json.channel }}",
+                    "rightValue": "meta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "meta"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse AI Response').item.json.channel }}",
+                    "rightValue": "instagram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "meta"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse AI Response').item.json.channel }}",
+                    "rightValue": "whatsapp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "whatsapp"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Parse AI Response').item.json.channel }}",
+                    "rightValue": "website",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "website"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      }
+    },
+    {
+      "id": "http-reply-telegram",
+      "name": "Reply via Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3600,
+        500
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $('Parse AI Response').item.json.external_id.replace('telegram:',''), text: $('Parse AI Response').item.json.reply_to_lead }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-reply-meta",
+      "name": "Reply via Meta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3600,
+        620
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/me/messages?access_token={{ $env.META_PAGE_ACCESS_TOKEN }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: { id: $('Parse AI Response').item.json.external_id.replace(/^(messenger|instagram):/,'') }, message: { text: $('Parse AI Response').item.json.reply_to_lead } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-reply-whatsapp",
+      "name": "Reply via WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3600,
+        740
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Parse AI Response').item.json.external_id.replace('whatsapp:',''), type: 'text', text: { body: $('Parse AI Response').item.json.reply_to_lead } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "respond-website",
+      "name": "Reply via Website",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3600,
+        860
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ reply: $('Parse AI Response').item.json.reply_to_lead }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Inbound": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Unify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta Verify": {
+      "main": [
+        [
+          {
+            "node": "Build Meta Challenge Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Meta Challenge Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Meta Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta Inbound": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Unify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Verify": {
+      "main": [
+        [
+          {
+            "node": "Build WhatsApp Challenge Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build WhatsApp Challenge Response": {
+      "main": [
+        [
+          {
+            "node": "Respond WhatsApp Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Inbound": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Unify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Website Inbound": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Unify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Unify": {
+      "main": [
+        [
+          {
+            "node": "HubSpot Search Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot Search Contact": {
+      "main": [
+        [
+          {
+            "node": "Build AI Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Request": {
+      "main": [
+        [
+          {
+            "node": "Call AI Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call AI Model": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Contact Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Exists?": {
+      "main": [
+        [
+          {
+            "node": "Update Contact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Contact": {
+      "main": [
+        [
+          {
+            "node": "Merge Contact ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Contact": {
+      "main": [
+        [
+          {
+            "node": "Merge Contact ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Contact ID": {
+      "main": [
+        [
+          {
+            "node": "Add Qualitative Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Qualitative Note": {
+      "main": [
+        [
+          {
+            "node": "HubSpot Add Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot Add Note": {
+      "main": [
+        [
+          {
+            "node": "Ready To Book?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ready To Book?": {
+      "main": [
+        [
+          {
+            "node": "Upsert Deal - Qualified",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert Deal - Nurture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Deal - Qualified": {
+      "main": [
+        [
+          {
+            "node": "Escalate To Human?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Deal - Nurture": {
+      "main": [
+        [
+          {
+            "node": "Escalate To Human?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escalate To Human?": {
+      "main": [
+        [
+          {
+            "node": "Notify Ops (Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route Reply By Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Ops (Telegram)": {
+      "main": [
+        [
+          {
+            "node": "Route Reply By Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Reply By Channel": {
+      "main": [
+        [
+          {
+            "node": "Reply via Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply via Meta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply via WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply via Website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

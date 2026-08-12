@@ -1,0 +1,385 @@
+<title>Build &amp; Deploy Guide — AU Roofing &amp; Solar Automation</title>
+
+<style>
+  :root {
+    --paper: #eeede7;
+    --paper-raised: #f7f6f2;
+    --paper-stamp: #e4e2d9;
+    --ink: #201e1a;
+    --ink-dim: #5c584e;
+    --line: #c7c2b4;
+    --accent-hot: #c94f19;
+    --accent-solar: #145e76;
+    --accent-slate: #48585b;
+    --success: #2f7a4a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #17191a; --paper-raised: #1e2123; --paper-stamp: #24272a;
+      --ink: #ede9df; --ink-dim: #a29d90; --line: #383b3a;
+      --accent-hot: #ff7a3b; --accent-solar: #56b8d6; --accent-slate: #93a3a6; --success: #57b87b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #17191a; --paper-raised: #1e2123; --paper-stamp: #24272a;
+    --ink: #ede9df; --ink-dim: #a29d90; --line: #383b3a;
+    --accent-hot: #ff7a3b; --accent-solar: #56b8d6; --accent-slate: #93a3a6; --success: #57b87b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+  main { max-width: 1000px; margin: 0 auto; padding: 56px 24px 100px; }
+
+  header.docket {
+    border: 1.5px solid var(--ink); padding: 22px 26px; background: var(--paper-raised);
+    display: grid; grid-template-columns: 1fr auto; gap: 10px 24px;
+  }
+  header.docket .doc-title {
+    grid-column: 1/-1; font-family: ui-monospace, monospace; font-size: 1.6rem; font-weight: 700;
+    letter-spacing: .02em; text-transform: uppercase; text-wrap: balance; margin: 0 0 2px;
+  }
+  header.docket .doc-sub { grid-column: 1/-1; color: var(--ink-dim); font-size: .98rem; max-width: 68ch; }
+  header.docket .meta-block {
+    font-family: ui-monospace, monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-dim); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px;
+    display: flex; gap: 28px; flex-wrap: wrap;
+  }
+  header.docket .meta-block strong { color: var(--ink); display: block; font-size: .9rem; letter-spacing: 0; margin-top: 2px; }
+
+  nav.toc {
+    margin-top: 28px; border: 1px solid var(--line); background: var(--paper-raised); padding: 16px 20px;
+  }
+  nav.toc .cat { font-family: ui-monospace, monospace; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-solar); margin-bottom: 10px; }
+  nav.toc ol { margin: 0; padding-left: 0; list-style: none; columns: 2; column-gap: 24px; }
+  nav.toc li { break-inside: avoid; margin-bottom: 6px; font-size: .92rem; }
+  nav.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--line); }
+  nav.toc a:hover { color: var(--accent-solar); }
+
+  section { margin-top: 52px; }
+  section.step { scroll-margin-top: 20px; }
+  h2 {
+    font-family: ui-monospace, monospace; font-size: .82rem; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--accent-solar); border-bottom: 1px solid var(--line); padding-bottom: 10px; margin: 0 0 20px;
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  h2 .stepnum {
+    font-size: 1.4rem; color: var(--ink); font-weight: 700; letter-spacing: 0;
+  }
+  h3 { font-family: ui-monospace, monospace; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink); margin: 26px 0 10px; }
+
+  p.lede { max-width: 70ch; font-size: 1.02rem; }
+  p.note { max-width: 72ch; font-size: .9rem; color: var(--ink-dim); }
+
+  .callout {
+    border-left: 3px solid var(--accent-solar); background: color-mix(in srgb, var(--accent-solar) 7%, var(--paper-raised));
+    padding: 12px 16px; margin: 16px 0; font-size: .92rem;
+  }
+  .callout.warn { border-left-color: var(--accent-hot); background: color-mix(in srgb, var(--accent-hot) 7%, var(--paper-raised)); }
+  .callout b { color: var(--ink); }
+
+  ol.steps { padding-left: 0; list-style: none; counter-reset: step; margin: 16px 0; }
+  ol.steps > li {
+    counter-increment: step; position: relative; padding: 8px 0 8px 34px; font-size: .96rem;
+    border-bottom: 1px dashed var(--line);
+  }
+  ol.steps > li:last-child { border-bottom: none; }
+  ol.steps > li::before {
+    content: counter(step); position: absolute; left: 0; top: 8px;
+    font-family: ui-monospace, monospace; font-size: .72rem; color: var(--accent-solar);
+    border: 1px solid var(--accent-solar); border-radius: 50%; width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.steps code, p code, li code, td code {
+    font-family: ui-monospace, monospace; font-size: .85em; background: var(--paper-stamp);
+    padding: 1px 5px; border-radius: 3px;
+  }
+
+  pre {
+    background: var(--paper-stamp); border: 1px solid var(--line); border-radius: 4px;
+    padding: 14px 16px; overflow-x: auto; font-size: .82rem; line-height: 1.55;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  pre code { background: none; padding: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 14px 0; }
+  thead th {
+    text-align: left; font-family: ui-monospace, monospace; font-size: .66rem; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--ink-dim); border-bottom: 1px solid var(--ink); padding: 0 12px 8px 0;
+  }
+  tbody td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  .table-scroll { overflow-x: auto; }
+  td.mono, th.mono { font-family: ui-monospace, monospace; font-size: .82rem; }
+
+  ul.checklist { list-style: none; padding-left: 0; margin: 14px 0; }
+  ul.checklist li {
+    position: relative; padding: 6px 0 6px 30px; font-size: .94rem; border-bottom: 1px dashed var(--line);
+  }
+  ul.checklist li:last-child { border-bottom: none; }
+  ul.checklist li::before {
+    content: "☐"; position: absolute; left: 0; top: 6px; color: var(--accent-solar); font-size: 1.05rem;
+  }
+
+  .filetree {
+    background: var(--paper-raised); border: 1px solid var(--line); padding: 16px 20px;
+    font-family: ui-monospace, monospace; font-size: .85rem; line-height: 1.75; white-space: pre;
+    overflow-x: auto;
+  }
+  .filetree .dir { color: var(--accent-solar); }
+  .filetree .note { color: var(--ink-dim); font-style: italic; }
+
+  .stack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin: 16px 0; }
+  .stack-cell { background: var(--paper-raised); padding: 14px 18px; }
+  .stack-cell .cat { font-family: ui-monospace, monospace; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-slate); margin-bottom: 4px; }
+
+  footer { margin-top: 70px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--ink-dim); font-size: .82rem; }
+
+  @media (max-width: 640px) {
+    header.docket { grid-template-columns: 1fr; }
+    nav.toc ol { columns: 1; }
+    .stack-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<main>
+
+  <header class="docket">
+    <div class="doc-title">Build &amp; Deploy Guide</div>
+    <div class="doc-sub">Step-by-step setup for the AU roofing &amp; solar lead-to-booking automation — every account, every field, every import, in order.</div>
+    <div class="meta-block">
+      <div>Companion to<strong>Lead-to-Booking Operations Flow</strong></div>
+      <div>Stack<strong>n8n · HubSpot Free · Claude</strong></div>
+      <div>Rev<strong>01 — build spec</strong></div>
+      <div>Prepared<strong>11 Aug 2026</strong></div>
+    </div>
+  </header>
+
+  <div class="callout">
+    <b>What this unlocks:</b> four importable n8n workflows, the exact HubSpot fields and pipeline they depend on, the Claude system prompt that runs the AI agent, and a website chat widget — everything referenced here lives in the <code class="mono">Website/</code>, <code class="mono">Workflows/</code>, <code class="mono">Configuration/</code> and <code class="mono">Documentation/</code> folders of this project. This guide is the order to build it in.
+  </div>
+
+  <div class="callout warn">
+    <b>Honest caveat before you start:</b> the n8n workflow JSON files were hand-written to be imported directly, using stable, generic building blocks (Webhook, Code, HTTP Request, IF, Schedule Trigger) precisely because those are the least likely to break across n8n versions. They have not been run against a live n8n instance. If any node fails to import cleanly, the <b>node-by-node build spec in §9</b> is the source of truth — every field is documented there so you can recreate the node by hand in a couple of minutes. Treat the JSON as the fast path, not the only path.
+  </div>
+
+  <nav class="toc">
+    <div class="cat">Contents</div>
+    <ol>
+      <li><a href="#s1">What you're building</a></li>
+      <li><a href="#s2">Before you start</a></li>
+      <li><a href="#s3">Stand up n8n</a></li>
+      <li><a href="#s4">Configure HubSpot</a></li>
+      <li><a href="#s5">Create the Telegram bot</a></li>
+      <li><a href="#s6">Create the Meta app (FB + IG)</a></li>
+      <li><a href="#s7">Get an AI model API key</a></li>
+      <li><a href="#s8">Set up Twilio</a></li>
+      <li><a href="#s9">Import the 4 workflows</a></li>
+      <li><a href="#s10">Embed the website widget</a></li>
+      <li><a href="#s11">Wire up webhooks at each provider</a></li>
+      <li><a href="#s12">Test end-to-end</a></li>
+      <li><a href="#s13">Go-live checklist</a></li>
+      <li><a href="#s14">WhatsApp (optional, later)</a></li>
+    </ol>
+  </nav>
+
+  <section id="s1">
+    <h2><span class="stepnum">01</span>What you're building</h2>
+    <p class="lede">One AI agent, reachable from four channels, that qualifies a lead, writes it into HubSpot, and hands it either to a booking link or a nurture sequence — then reminders, then a review or recovery follow-up depending on how the job went. All of the logic lives in four n8n workflows; HubSpot just stores the record.</p>
+    <div class="filetree">Roofing Solar Company/
+<span class="dir">├── Website/</span>                                     <span class="note">the live site</span>
+│   ├── solterra-landing-au-solarfirst.html
+│   ├── config.js                               <span class="note">one-file rebrand + webhook default</span>
+│   ├── analytics.js
+│   ├── privacy-policy.html
+│   └── images/
+<span class="dir">├── Workflows/</span>                                   <span class="note">import these into n8n</span>
+│   ├── 01-ai-agent-inbound-intake.json        <span class="note">Telegram/FB/IG/WhatsApp/Website → AI qualify → HubSpot</span>
+│   ├── 02-booking-confirmation-reminders.json <span class="note">Meeting booked → confirm → 24h/1h reminders</span>
+│   ├── 03-followup-nurture-drip.json          <span class="note">Cold leads → Day 1/3/7/14/monthly drip</span>
+│   └── 04-completion-review-recovery.json     <span class="note">Won → review+referral · Lost → recovery → nurture</span>
+<span class="dir">├── Configuration/</span>
+│   ├── .env.example                            <span class="note">every credential the workflows read</span>
+│   └── website-chat-widget.html                <span class="note">standalone widget for a different site</span>
+<span class="dir">├── Documentation/</span>
+│   ├── build-guide.html                        <span class="note">this file</span>
+│   ├── workflow-diagram.html
+│   ├── hubspot-setup.md                        <span class="note">exact properties + pipeline to create</span>
+│   └── claude-system-prompt.md                 <span class="note">readable copy of the AI agent's instructions</span>
+<span class="dir">└── SOPs/</span>
+    └── SOP.html                                <span class="note">ongoing operations manual</span></div>
+  </section>
+
+  <section id="s2">
+    <h2><span class="stepnum">02</span>Before you start</h2>
+    <p class="lede">Accounts to have open in tabs before you begin — each is free to create:</p>
+    <ul class="checklist">
+      <li>A server or host to run n8n on (or n8n Cloud, if you'd rather skip server admin)</li>
+      <li>A HubSpot account (free tier is fine)</li>
+      <li>A Meta developer account at <code>developers.facebook.com</code>, with a Facebook Page and connected Instagram Business account</li>
+      <li>Telegram installed, and access to <code>@BotFather</code></li>
+      <li>An Anthropic account with billing enabled at <code>console.anthropic.com</code></li>
+      <li>A Twilio account (free trial credit is enough to test)</li>
+      <li>Admin access to the WordPress site</li>
+    </ul>
+  </section>
+
+  <section id="s3">
+    <h2><span class="stepnum">03</span>Stand up n8n</h2>
+    <p class="lede">Since you're already running n8n, skip to confirming these two things — everything else in this guide assumes them:</p>
+    <ol class="steps">
+      <li>Your n8n instance is reachable at a public HTTPS URL (webhooks from Telegram/Meta/WhatsApp must be able to reach it — <code>localhost</code> won't work unless tunnelled).</li>
+      <li>Environment variables are set from <code>config/.env.example</code> — copy it to wherever your n8n host reads env vars from (a mounted <code>.env</code> file for Docker, the host's environment for a VPS, or n8n Cloud's environment variable settings panel) and fill in every value once you have it from the steps below.</li>
+    </ol>
+    <p class="note">If standing up fresh: self-hosted n8n is free software, unlimited workflows/executions — you only pay for the small VPS it runs on (~$5–7/month). n8n Cloud starts at $24/month if you'd rather not manage a server.</p>
+  </section>
+
+  <section id="s4">
+    <h2><span class="stepnum">04</span>Configure HubSpot</h2>
+    <p class="lede">Full field-by-field spec is in <code>Documentation/hubspot-setup.md</code> — do these four things there, in order:</p>
+    <ol class="steps">
+      <li>Create a Private App (Settings → Integrations → Private Apps) with the CRM scopes listed in the doc → copy the token into <code>HUBSPOT_TOKEN</code>.</li>
+      <li>Create the 10 contact properties and 10 deal properties listed in the doc, using the exact internal names given — the workflows reference these names directly.</li>
+      <li>Rename the default pipeline's stages to match the 7 listed, and copy each stage's internal ID into the matching <code>HUBSPOT_STAGE_*</code> variable in <code>.env</code>.</li>
+      <li>Create a Meetings link per rep/region (Settings → Objects → Meetings) — free tier has no round-robin, so this is the workaround.</li>
+    </ol>
+    <div class="callout"><b>Why polling, not webhooks:</b> a HubSpot Private App can't receive push webhooks on the free plan. Workflows 2–4 check on a schedule (every 15 minutes or daily) instead of reacting instantly — a deliberate, documented tradeoff, not a bug.</div>
+  </section>
+
+  <section id="s5">
+    <h2><span class="stepnum">05</span>Create the Telegram bot</h2>
+    <ol class="steps">
+      <li>Open Telegram, message <code>@BotFather</code>, send <code>/newbot</code>, follow the prompts (name + username).</li>
+      <li>BotFather replies with a token like <code>123456789:AAxxxxxxxxxxxxxxxxxxx</code> → this is <code>TELEGRAM_BOT_TOKEN</code>.</li>
+      <li>Create (or pick) a private Telegram group for your team, add the bot to it, and get that group's chat ID (send a message in the group, then check <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code> for the <code>chat.id</code> — it'll be a negative number for a group) → this is <code>TELEGRAM_OPS_CHAT_ID</code>, where escalation alerts land.</li>
+      <li>No webhook registration step needed yet — that's §11.</li>
+    </ol>
+  </section>
+
+  <section id="s6">
+    <h2><span class="stepnum">06</span>Create the Meta app (Facebook + Instagram)</h2>
+    <ol class="steps">
+      <li>developers.facebook.com → My Apps → Create App → type "Business".</li>
+      <li>Add the "Messenger" product, then also add "Instagram" (it reuses the same webhook once your Instagram Business account is connected to the same Facebook Page).</li>
+      <li>Under Messenger → Settings, generate a Page Access Token for your business Page → <code>META_PAGE_ACCESS_TOKEN</code>.</li>
+      <li>Choose your own random string for <code>META_VERIFY_TOKEN</code> in <code>.env</code> — you'll enter this same value into Meta's webhook config in §11.</li>
+      <li>Under App Review, request the <code>pages_messaging</code> and <code>instagram_manage_messages</code> permissions (small businesses can usually self-approve these for their own Page in developer mode without a full review).</li>
+    </ol>
+  </section>
+
+  <section id="s7">
+    <h2><span class="stepnum">07</span>Get an AI model API key</h2>
+    <ol class="steps">
+      <li>console.anthropic.com → Settings → API Keys → Create Key → <code>ANTHROPIC_API_KEY</code>. This is the default provider (<code>AI_PROVIDER_DEFAULT=anthropic</code>) and the only one required to launch.</li>
+      <li>Add billing — this is pay-per-token, no monthly minimum. At trade-business lead volumes this runs a few cents per conversation.</li>
+      <li>Fill in <code>BUSINESS_NAME</code>, <code>SERVICE_POSTCODES</code>, <code>STC_MESSAGE</code> and <code>GOOGLE_REVIEW_LINK</code> in <code>.env</code> — these feed straight into the system prompt (see <code>Documentation/claude-system-prompt.md</code>).</li>
+    </ol>
+    <div class="callout"><b>Optional — Gemini and/or Grok:</b> workflow 1's "Build AI Request" node can call any of the three; which one runs is decided per-message by <code>AI_PROVIDER_DEFAULT</code> (all non-website channels) or the website's own "⚙ Integration settings" panel, which sends a preference — never a key — with each lead. To enable a provider, add its key to <code>.env</code> (<code>GOOGLE_AI_API_KEY</code> from aistudio.google.com/apikey, or <code>XAI_API_KEY</code> from console.x.ai) — nothing else changes, the node already knows how to call all three.</div>
+  </section>
+
+  <section id="s8">
+    <h2><span class="stepnum">08</span>Set up Twilio (SMS fallback)</h2>
+    <p class="lede">Used only for leads with no chat channel open (e.g. a website visitor who gave a phone number but never opened Telegram).</p>
+    <ol class="steps">
+      <li>twilio.com → Console → copy Account SID and Auth Token → <code>TWILIO_SID</code> / <code>TWILIO_AUTH_TOKEN</code>.</li>
+      <li>Buy an AU-capable number (or use the trial number for testing) → <code>TWILIO_FROM_NUMBER</code>.</li>
+      <li>In n8n: Credentials → New → "Basic Auth" → username = Account SID, password = Auth Token → name it exactly <code>Twilio Basic Auth</code> (the imported workflows reference this credential name for the SMS-fallback nodes).</li>
+    </ol>
+    <p class="note">~8c AUD per SMS, billed in USD, no subscription.</p>
+  </section>
+
+  <section id="s9">
+    <h2><span class="stepnum">09</span>Import the 4 workflows</h2>
+    <ol class="steps">
+      <li>In n8n: Workflows → Import from File → select each of the 4 files in <code>Workflows/</code> one at a time.</li>
+      <li>Open each imported workflow and check every red-underlined node — that usually means an expression referencing a node name that doesn't match exactly (e.g. if you renamed a node while reviewing it). Node names are referenced by exact string in several places (<code>$('Node Name')</code>), so renaming breaks those references.</li>
+      <li>Confirm your n8n instance has environment variable access enabled for expressions (some hosts disable <code>$env</code> by default for security — if so, either re-enable it for this instance or replace each <code>$env.X</code> reference with an n8n "Variables" lookup instead).</li>
+      <li>Leave all 4 workflows <b>inactive</b> until §12 testing is done, then activate.</li>
+    </ol>
+    <div class="callout warn"><b>If a node fails to import:</b> delete it and rebuild by hand using the node's <code>parameters</code> block in the JSON file as your field-by-field spec — every value needed is already written out in there (URL, headers, body). This is slower but always works, regardless of n8n version drift.</div>
+  </section>
+
+  <section id="s10">
+    <h2><span class="stepnum">10</span>Embed the website chat widget</h2>
+    <ol class="steps">
+      <li>In n8n, open workflow 1, click the "Website Inbound" webhook node, copy its Production URL.</li>
+      <li>Open <code>Configuration/website-chat-widget.html</code>, replace <code>N8N_WEBHOOK_URL</code> with that URL.</li>
+      <li>WordPress admin → Appearance → Widgets (or Elementor → add an HTML widget to the footer template) → paste the whole snippet.</li>
+      <li>This widget is separate from HubSpot's own free chat tool — HubSpot Free's chat doesn't support outbound webhooks, so a small custom widget is what actually lets the AI agent answer on the website. Keep HubSpot's chat tool disabled or human-staffed-only to avoid two bots competing on the same page.</li>
+    </ol>
+    <div class="callout"><b>If you're using the main site directly</b> (<code>Website/solterra-landing-au-solarfirst.html</code>) rather than embedding just the widget into a separate WordPress install: it already ships with the chat widget, the quote form, <code>config.js</code> for one-file rebranding, and a separate, password-gated <code>admin.html</code> page — paste the Production URL there and click Test connection, no file editing required. See <code>Documentation/settings-access-guide.md</code>. The steps above are for embedding the standalone widget snippet into a different, existing website instead.</div>
+  </section>
+
+  <section id="s11">
+    <h2><span class="stepnum">11</span>Wire up webhooks at each provider</h2>
+    <p class="lede">Now that n8n has the workflows imported and your webhook URLs exist, point each provider at them.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Provider</th><th>Where to register</th><th>URL to enter</th></tr></thead>
+        <tbody>
+          <tr><td>Telegram</td><td>One-time API call (see below)</td><td class="mono">https://your-n8n/webhook/wf1-telegram</td></tr>
+          <tr><td>Meta (Messenger + IG)</td><td>App dashboard → Webhooks → Add Callback URL</td><td class="mono">https://your-n8n/webhook/wf1-meta</td></tr>
+          <tr><td>WhatsApp (optional)</td><td>App dashboard → WhatsApp → Configuration</td><td class="mono">https://your-n8n/webhook/wf1-whatsapp</td></tr>
+          <tr><td>Website</td><td>Already wired via the widget (§10)</td><td class="mono">https://your-n8n/webhook/wf1-website</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Telegram doesn't have a dashboard for this — register the webhook with one request:</p>
+    <pre><code>curl "https://api.telegram.org/bot&lt;TELEGRAM_BOT_TOKEN&gt;/setWebhook?url=https://your-n8n/webhook/wf1-telegram"</code></pre>
+    <p class="note">For Meta, enter your <code>META_VERIFY_TOKEN</code> value in the same dashboard field — Meta immediately sends a GET request to confirm it, which the "Meta Verify" node in workflow 1 handles.</p>
+  </section>
+
+  <section id="s12">
+    <h2><span class="stepnum">12</span>Test end-to-end</h2>
+    <table>
+      <thead><tr><th>Test</th><th>Expected result</th></tr></thead>
+      <tbody>
+        <tr><td>Message the Telegram bot: "hi, my roof is leaking in Bondi"</td><td>AI replies asking a qualifying question within a few seconds; a new Contact appears in HubSpot with <code>lead_source=telegram</code></td></tr>
+        <tr><td>Message your Facebook Page</td><td>Same AI agent responds; Contact gets <code>lead_source=meta</code></td></tr>
+        <tr><td>Open the website chat bubble and send a message</td><td>Reply appears in the widget; Contact gets <code>lead_source=website</code></td></tr>
+        <tr><td>Open <code>admin.html</code> → set AI model to Gemini or Grok → Save → send a chat message on the main site</td><td>n8n Execution for that run shows the "Build AI Request" node's output with <code>provider</code> matching your choice, and the call succeeds if that provider's key is set in <code>.env</code></td></tr>
+        <tr><td>Set a real Google Calendar Appointment Schedule link in "Integration settings" → Save</td><td>"Or pick your own time" appears on the quote card and opens the real booking page</td></tr>
+        <tr><td>Complete a qualifying conversation as a "hot" lead (leak, ready this week)</td><td>A Deal appears in the "Qualified – Ready to Book" stage, associated to the Contact</td></tr>
+        <tr><td>Say something that should escalate (e.g. "I want a full re-roof and solar+battery")</td><td>A message lands in your Telegram ops group within a few seconds</td></tr>
+        <tr><td>Book a test meeting via a Meetings link</td><td>Within 15 minutes, the Deal moves to "Appointment Booked" and a confirmation message arrives on your test channel</td></tr>
+        <tr><td>Manually set a test Deal's <code>appointment_datetime</code> to ~24h from now</td><td>24h reminder fires on the next 15-minute cycle</td></tr>
+        <tr><td>Manually set a Contact's <code>lead_score=cold</code>, <code>drip_stage=day0</code>, <code>last_ai_contact_at</code> to 25h ago</td><td>Day 1 drip message fires on the next daily run</td></tr>
+        <tr><td>Manually move a test Deal to "Won" with <code>closedate</code> 3 days ago</td><td>Review + referral message fires on the next daily run</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="s13">
+    <h2><span class="stepnum">13</span>Go-live checklist</h2>
+    <ul class="checklist">
+      <li>All 4 workflows activated in n8n</li>
+      <li>Real (non-test) Google review link, reschedule link, and business name filled into <code>.env</code></li>
+      <li>Service postcodes list matches your actual coverage area</li>
+      <li>Meetings links created for every rep/region you operate in</li>
+      <li>Telegram ops group has the right people in it before escalations start firing</li>
+      <li>Twilio number and sender ID sorted (some AU carriers require sender registration for business SMS — check current Twilio AU requirements)</li>
+      <li>HubSpot chat widget turned off or human-only, so it doesn't compete with the custom website widget</li>
+      <li>Ran every test in §12 successfully</li>
+    </ul>
+  </section>
+
+  <section id="s14">
+    <h2><span class="stepnum">14</span>WhatsApp — optional, add later</h2>
+    <p class="lede">Not required to launch. When ready:</p>
+    <ol class="steps">
+      <li>In the same Meta app from §6, add the "WhatsApp" product.</li>
+      <li>Get a WhatsApp-enabled phone number ID → <code>WHATSAPP_PHONE_NUMBER_ID</code>, and a permanent access token → <code>WHATSAPP_ACCESS_TOKEN</code>.</li>
+      <li>Set <code>WHATSAPP_VERIFY_TOKEN</code> to your own random string, register the webhook URL <code>https://your-n8n/webhook/wf1-whatsapp</code> in the WhatsApp Configuration tab with that token.</li>
+      <li>No workflow changes needed — the WhatsApp webhook, verification, and reply nodes already exist in workflow 1 and the generic-send logic in workflows 2–4; they just start receiving traffic once registered.</li>
+      <li>Remember: service replies inside the 24h window are free; marketing/utility template sends are billed per message — confirm current Meta AU rates before turning on WhatsApp for the drip sequence specifically.</li>
+    </ol>
+  </section>
+
+  <footer>
+    Every file this guide references lives in the <code class="mono">Website/</code>, <code class="mono">Workflows/</code>, <code class="mono">Configuration/</code> and <code class="mono">Documentation/</code> folders of this project. Edit copy, cadence, and scoring rules directly in the workflow Code nodes and <code class="mono">Documentation/claude-system-prompt.md</code> — nothing here is hardcoded beyond what's documented.
+  </footer>
+
+</main>

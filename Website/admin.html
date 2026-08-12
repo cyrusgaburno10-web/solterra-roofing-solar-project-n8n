@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Settings</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="config.js"></script>
+<script src="config-helpers.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dusk:#10151F; --slate:#1B2233; --slate-2:#242C40;
+    --gold:#F0A93D; --clay:#C1642E; --warm:#F3EFE6; --muted:#8B93A6;
+    --line: rgba(243,239,230,0.10);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--dusk); color:var(--warm); font-family:'Inter', sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  a{ color:var(--gold); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+  .wrap{ max-width:560px; margin:0 auto; padding:0 24px; }
+
+  header{ border-bottom:1px solid var(--line); padding:20px 0; margin-bottom:48px; }
+  header .wrap{ display:flex; align-items:center; justify-content:space-between; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:'Space Grotesk'; font-weight:700; font-size:18px; }
+  .logo-mark{ width:22px; height:22px; }
+  .back-link{ font-size:13px; color:var(--muted); }
+  .back-link:hover{ color:var(--gold); }
+
+  main{ padding-bottom:80px; }
+  h1{ font-family:'Space Grotesk'; font-size:22px; margin-bottom:6px; }
+  .page-sub{ font-size:13.5px; color:var(--muted); margin-bottom:32px; }
+
+  .card{
+    background:var(--slate); border:1px solid var(--line); border-radius:14px;
+    padding:28px;
+  }
+
+  label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; margin-top:18px; }
+  label:first-of-type{ margin-top:0; }
+  input[type="text"], input[type="password"]{
+    width:100%; background:var(--dusk); border:1px solid var(--line); color:var(--warm);
+    padding:11px 13px; border-radius:8px; font-size:13px; font-family:'IBM Plex Mono', monospace;
+  }
+  input[type="text"]:focus, input[type="password"]:focus{ border-color:var(--gold); outline:none; }
+  select{
+    width:100%; background:var(--dusk); border:1px solid var(--line); color:var(--warm);
+    padding:11px 13px; border-radius:8px; font-size:13.5px; font-family:inherit;
+  }
+  select:focus{ border-color:var(--gold); outline:none; }
+
+  .section{ margin-top:26px; padding-top:24px; border-top:1px solid var(--line); }
+  .section:first-of-type{ margin-top:0; padding-top:0; border-top:none; }
+  .section-label{ font-family:'Space Grotesk'; font-size:15px; font-weight:600; margin-bottom:14px; }
+
+  .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .actions button{
+    flex:1; padding:11px 14px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:var(--dusk); color:var(--warm); font-family:inherit; white-space:nowrap;
+  }
+  .actions button.primary{ background:var(--gold); color:var(--dusk); border-color:var(--gold); }
+  .actions button.primary:hover{ background:#ffbb55; }
+  .actions button:hover{ border-color:var(--gold); }
+
+  .status{ margin-top:14px; padding:11px 13px; border-radius:8px; font-size:12.5px; display:none; line-height:1.5; }
+  .status.show{ display:block; }
+  .status.ok{ background:rgba(111,207,151,0.12); border:1px solid rgba(111,207,151,0.35); color:#8fe0ac; }
+  .status.fail{ background:rgba(193,100,46,0.14); border:1px solid rgba(193,100,46,0.4); color:#e2895c; }
+  .status.pending{ background:rgba(240,169,61,0.1); border:1px solid rgba(240,169,61,0.3); color:var(--gold); }
+
+  .hint{ font-size:11.5px; color:var(--muted); margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+  .hint code{ font-family:'IBM Plex Mono', monospace; background:var(--dusk); padding:1px 5px; border-radius:3px; }
+
+  .readiness-summary{ font-size:13px; color:var(--muted); margin-bottom:12px; }
+  .readiness-summary b{ color:var(--warm); }
+  .readiness-list{ list-style:none; }
+  .readiness-list li{ display:flex; align-items:center; gap:10px; padding:7px 0; font-size:13px; border-top:1px dashed var(--line); }
+  .readiness-list li:first-child{ border-top:none; }
+  .readiness-list .icon{ flex-shrink:0; font-size:13px; width:16px; text-align:center; }
+  .readiness-list li.ready .icon{ color:#6fcf97; }
+  .readiness-list li.pending .icon{ color:var(--gold); }
+  .readiness-list li.pending{ color:var(--warm); }
+  .readiness-list li.ready{ color:var(--muted); }
+
+  .top-actions{ display:flex; justify-content:flex-end; margin-bottom:16px; }
+  .lock-link{ font-size:12.5px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; }
+  .lock-link:hover{ color:var(--gold); }
+
+  /* Password gate */
+  #gate{ display:flex; align-items:center; justify-content:center; min-height:60vh; }
+  #gate .card{ max-width:360px; width:100%; }
+  #gate h1{ font-size:19px; }
+
+  #panel{ display:none; }
+  #panel.show{ display:block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo">
+      <svg class="logo-mark" viewBox="0 0 26 26" fill="none">
+        <path d="M2 15L13 6L24 15" stroke="#F0A93D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="6" y="15" width="5.2" height="5.2" fill="#F0A93D" opacity="0.9"/>
+        <rect x="12" y="15" width="5.2" height="5.2" fill="#F0A93D"/>
+        <rect x="18" y="15" width="4" height="5.2" fill="#F0A93D" opacity="0.6"/>
+      </svg>
+      <span data-cfg-text="business.name">Solterra</span> — Settings
+    </div>
+    <a href="solterra-landing-au-solarfirst.html" class="back-link">← Back to site</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- Password gate: this is the whole page's content until unlocked -->
+    <div id="gate">
+      <div class="card">
+        <h1>Staff access</h1>
+        <p class="page-sub">Enter the settings password to continue.</p>
+        <label for="pwInput">Password</label>
+        <input type="password" id="pwInput" placeholder="••••••••" autocomplete="off">
+        <div class="actions">
+          <button type="button" id="pwSubmit" class="primary">Unlock</button>
+        </div>
+        <div class="status" id="pwStatus"></div>
+      </div>
+    </div>
+
+    <!-- Actual settings, hidden until unlocked -->
+    <div id="panel">
+      <div class="top-actions">
+        <button type="button" class="lock-link" id="lockBtn">🔒 Lock and exit</button>
+      </div>
+
+      <h1>Integration settings</h1>
+      <p class="page-sub">Where leads go, how bookings work, and which AI model answers.</p>
+
+      <div class="card">
+        <div class="section">
+          <div class="section-label">Launch readiness</div>
+          <p class="readiness-summary" id="readinessSummary"></p>
+          <ul class="readiness-list" id="readinessList"></ul>
+        </div>
+
+        <div class="section">
+          <div class="section-label">n8n webhook</div>
+          <label for="webhookUrlInput">Website webhook URL</label>
+          <input type="text" id="webhookUrlInput" placeholder="https://your-n8n-host/webhook/wf1-website" autocomplete="off" spellcheck="false">
+          <div class="actions">
+            <button type="button" id="testWebhookBtn">Test connection</button>
+            <button type="button" id="saveWebhookBtn" class="primary">Save</button>
+          </div>
+          <div class="actions">
+            <button type="button" id="resetWebhookBtn">Reset to default</button>
+          </div>
+          <div class="status" id="webhookStatus"></div>
+          <p class="hint">Copy this from the <b>Production URL</b> on the "Website Inbound" node in <code>01-ai-agent-inbound-intake.json</code>, after the workflow is imported and Active in n8n.</p>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Booking calendar</div>
+          <label for="calendarUrlInput">Google Calendar booking link</label>
+          <input type="text" id="calendarUrlInput" placeholder="https://calendar.google.com/calendar/appointments/schedules/…" autocomplete="off" spellcheck="false">
+          <div class="actions">
+            <button type="button" id="openCalendarBtn">Open link</button>
+            <button type="button" id="saveCalendarBtn" class="primary">Save</button>
+          </div>
+          <div class="actions">
+            <button type="button" id="resetCalendarBtn">Reset to default</button>
+          </div>
+          <div class="status" id="calendarStatus"></div>
+          <p class="hint">From Google Calendar → Create → <b>Appointment schedule</b> → Share → copy the booking page link. Once saved, it shows as "Or pick your own time" on the site's quote card.</p>
+        </div>
+
+        <div class="section">
+          <div class="section-label">AI model</div>
+          <label for="aiProviderSelect">Which model answers new conversations</label>
+          <select id="aiProviderSelect">
+            <option value="anthropic">Claude (Anthropic)</option>
+            <option value="gemini">Gemini (Google)</option>
+            <option value="grok">Grok (xAI)</option>
+          </select>
+          <div class="actions">
+            <button type="button" id="saveAiProviderBtn" class="primary">Save</button>
+            <button type="button" id="resetAiProviderBtn">Reset to default</button>
+          </div>
+          <div class="status" id="aiProviderStatus"></div>
+          <p class="hint"><b>This is a preference, not an API key field — deliberately.</b> The website never calls an AI provider directly. This choice is sent along with each lead so n8n knows which model to call; the matching key (<code>GOOGLE_AI_API_KEY</code> or <code>XAI_API_KEY</code>) needs to be added to n8n's own <code>.env</code> to actually activate it.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  // ---- Hydrate the business name in the header ----
+  (function(){
+    var cfg = window.SITE_CONFIG;
+    if (!cfg) return;
+    document.querySelectorAll('[data-cfg-text]').forEach(function(el){
+      var v = 'business.name' === el.getAttribute('data-cfg-text') ? (cfg.business && cfg.business.name) : undefined;
+      if (v !== undefined) el.textContent = v;
+    });
+  })();
+
+  var UNLOCK_KEY = 'settings_unlocked';
+  var gate = document.getElementById('gate');
+  var panel = document.getElementById('panel');
+  var pwInput = document.getElementById('pwInput');
+  var pwSubmit = document.getElementById('pwSubmit');
+  var pwStatus = document.getElementById('pwStatus');
+  var lockBtn = document.getElementById('lockBtn');
+
+  function isUnlocked(){ return localStorage.getItem(UNLOCK_KEY) === '1'; }
+
+  function showPanel(){
+    gate.style.display = 'none';
+    panel.classList.add('show');
+    renderReadiness();
+    webhookInput.value = getWebhookUrl();
+    calendarInput.value = getCalendarUrl();
+    aiSelect.value = getAiProvider();
+  }
+  function showGate(){
+    gate.style.display = 'flex';
+    panel.classList.remove('show');
+    pwInput.value = '';
+    pwInput.focus();
+  }
+
+  function attemptUnlock(){
+    var configured = (window.SITE_CONFIG && window.SITE_CONFIG.integration && window.SITE_CONFIG.integration.settingsPassword) || '';
+    if (configured && pwInput.value === configured){
+      localStorage.setItem(UNLOCK_KEY, '1');
+      showPanel();
+    } else {
+      pwStatus.className = 'status show fail';
+      pwStatus.textContent = 'Wrong password - try again.';
+    }
+  }
+  pwSubmit.addEventListener('click', attemptUnlock);
+  pwInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') attemptUnlock(); });
+
+  lockBtn.addEventListener('click', function(){
+    localStorage.removeItem(UNLOCK_KEY);
+    showGate();
+  });
+
+  // ---- Readiness checklist ----
+  function renderReadiness(){
+    var checks = getReadinessChecks();
+    var readyCount = checks.filter(function(c){ return c.ok; }).length;
+    var summaryEl = document.getElementById('readinessSummary');
+    var listEl = document.getElementById('readinessList');
+    summaryEl.innerHTML = '<b>' + readyCount + ' of ' + checks.length + '</b> configured' +
+      (readyCount === checks.length ? ' — ready to show real customers.' : ' — still using sample/placeholder values below.');
+    listEl.innerHTML = '';
+    checks.forEach(function(c){
+      var li = document.createElement('li');
+      li.className = c.ok ? 'ready' : 'pending';
+      li.innerHTML = '<span class="icon">' + (c.ok ? '✓' : '○') + '</span><span>' + c.label + '</span>';
+      listEl.appendChild(li);
+    });
+  }
+
+  function statusHelper(el){
+    return function(kind, text){
+      el.className = 'status show ' + kind;
+      el.textContent = text;
+    };
+  }
+
+  // ---- Webhook section ----
+  var webhookInput = document.getElementById('webhookUrlInput');
+  var showWebhookStatus = statusHelper(document.getElementById('webhookStatus'));
+
+  document.getElementById('testWebhookBtn').addEventListener('click', function(){
+    var url = webhookInput.value.trim();
+    if (!url){ showWebhookStatus('fail', 'Paste a webhook URL first.'); return; }
+    showWebhookStatus('pending', 'Testing…');
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: 'connection-test-' + Date.now(), text: 'Connection test from Site Settings', name: 'Settings Test' })
+    })
+      .then(function(r){
+        if (r.ok) showWebhookStatus('ok', '✓ Connected - n8n responded (HTTP ' + r.status + '). Check the workflow\'s Executions list in n8n to confirm it ran end to end.');
+        else showWebhookStatus('fail', '✗ Reached the URL but got HTTP ' + r.status + '. Check the workflow is Active and the path matches "wf1-website".');
+      })
+      .catch(function(){
+        showWebhookStatus('fail', '✗ No response. Check the URL is correct, the workflow is Active, and "Allowed Origins (CORS)" is set on the Website Inbound node.');
+      });
+  });
+
+  document.getElementById('saveWebhookBtn').addEventListener('click', function(){
+    var url = webhookInput.value.trim();
+    if (!url){ showWebhookStatus('fail', 'Paste a webhook URL first.'); return; }
+    localStorage.setItem(WEBHOOK_STORAGE_KEY, url);
+    renderReadiness();
+    showWebhookStatus('ok', 'Saved. The site\'s form and chat widget will use this URL from now on.');
+  });
+
+  document.getElementById('resetWebhookBtn').addEventListener('click', function(){
+    localStorage.removeItem(WEBHOOK_STORAGE_KEY);
+    webhookInput.value = getWebhookUrl();
+    renderReadiness();
+    showWebhookStatus('pending', 'Reverted to the default in config.js.');
+  });
+
+  // ---- Calendar section ----
+  var calendarInput = document.getElementById('calendarUrlInput');
+  var showCalendarStatus = statusHelper(document.getElementById('calendarStatus'));
+
+  document.getElementById('openCalendarBtn').addEventListener('click', function(){
+    var url = calendarInput.value.trim();
+    if (!url){ showCalendarStatus('fail', 'Paste a calendar link first.'); return; }
+    window.open(url, '_blank', 'noopener');
+  });
+
+  document.getElementById('saveCalendarBtn').addEventListener('click', function(){
+    var url = calendarInput.value.trim();
+    if (!url){ showCalendarStatus('fail', 'Paste a calendar link first.'); return; }
+    localStorage.setItem(CALENDAR_STORAGE_KEY, url);
+    renderReadiness();
+    showCalendarStatus('ok', 'Saved. "Or pick your own time" now points here on the site.');
+  });
+
+  document.getElementById('resetCalendarBtn').addEventListener('click', function(){
+    localStorage.removeItem(CALENDAR_STORAGE_KEY);
+    calendarInput.value = getCalendarUrl();
+    renderReadiness();
+    showCalendarStatus('pending', 'Reverted to the default in config.js.');
+  });
+
+  // ---- AI model section ----
+  var aiSelect = document.getElementById('aiProviderSelect');
+  var showAiStatus = statusHelper(document.getElementById('aiProviderStatus'));
+
+  document.getElementById('saveAiProviderBtn').addEventListener('click', function(){
+    localStorage.setItem(AI_PROVIDER_STORAGE_KEY, aiSelect.value);
+    showAiStatus('ok', 'Saved. New conversations will ask n8n to use this model - make sure its API key is set in n8n\'s .env.');
+  });
+
+  document.getElementById('resetAiProviderBtn').addEventListener('click', function(){
+    localStorage.removeItem(AI_PROVIDER_STORAGE_KEY);
+    aiSelect.value = getAiProvider();
+    showAiStatus('pending', 'Reverted to the default in config.js.');
+  });
+
+  // ---- Boot ----
+  if (isUnlocked()) showPanel(); else showGate();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,169 @@
+{
+  "name": "03 - Follow-up Nurture Drip",
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "nodes": [
+    {
+      "id": "trigger-daily-9am",
+      "name": "Daily at 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": {
+        "rule": { "interval": [ { "field": "days", "daysInterval": 1, "triggerAtHour": 9, "triggerAtMinute": 0 } ] }
+      }
+    },
+    {
+      "id": "http-find-cold",
+      "name": "Find Cold Nurture Contacts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterGroups: [ { filters: [ { propertyName: 'lead_score', operator: 'EQ', value: 'cold' }, { propertyName: 'drip_stage', operator: 'NEQ', value: 'stopped' } ] } ], properties: ['firstname','job_type','drip_stage','last_ai_contact_at','preferred_channel','external_chat_id','phone'], limit: 100 }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "split-cold",
+      "name": "Split Cold Contacts",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [440, 0],
+      "parameters": { "fieldToSplitOut": "results" }
+    },
+    {
+      "id": "code-compute-due",
+      "name": "Compute Due Stage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0],
+      "parameters": {
+        "jsCode": "// Cadence: day0 -> day1 (after 1 day) -> day3 (after 2 more) -> day7 (after 4 more)\n// -> day14 (after 7 more) -> monthly (after 16 more, then repeats every 30 days)\nconst stageOffsetsMs = {\n  day0: 1 * 86400000,\n  day1: 2 * 86400000,\n  day3: 4 * 86400000,\n  day7: 7 * 86400000,\n  day14: 16 * 86400000,\n  monthly: 30 * 86400000\n};\nconst nextStage = { day0: 'day1', day1: 'day3', day3: 'day7', day7: 'day14', day14: 'monthly', monthly: 'monthly' };\n\nconst p = $json.properties;\nconst stage = p.drip_stage || 'day0';\nconst lastContact = Number(p.last_ai_contact_at) || 0;\nconst dueAt = lastContact + (stageOffsetsMs[stage] || 86400000);\nconst isDue = Date.now() >= dueAt;\n\nreturn { json: {\n  contactId: $json.id,\n  firstname: p.firstname,\n  jobType: p.job_type || 'unknown',\n  stage,\n  nextStage: nextStage[stage] || 'monthly',\n  externalChatId: p.external_chat_id || '',\n  phone: p.phone,\n  isDue\n} };"
+      }
+    },
+    {
+      "id": "if-is-due",
+      "name": "Is Due Today?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ $json.isDue }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "code-pick-message",
+      "name": "Pick Message Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 0],
+      "parameters": {
+        "jsCode": "// Value-first drip content by job type and drip stage. Edit freely - this is the copy.\nconst isSolar = $json.jobType === 'solar' || $json.jobType === 'solar_battery';\nconst name = $json.firstname || 'there';\n\nconst library = {\n  day1: isSolar\n    ? `Hi ${name}, quick one - the federal solar rebate (STC) drops in value every 1 Jan as the scheme winds down. Locking in this year keeps the current discount. Happy to run your numbers, no pressure.`\n    : `Hi ${name}, just following up - happy to answer any questions on your roof job whenever you're ready. No rush.`,\n  day3: isSolar\n    ? `A lot of our solar customers pair the system with a Brighte or Plenti payment plan so there's no big upfront cost. Want me to send how that works?`\n    : `Most of our jobs are done in a day or two once booked. If a rough quote would help you plan, just say the word.`,\n  day7: isSolar\n    ? `Case study: a customer in a similar postcode cut their power bill by ~70% with a 6.6kW system. Want a free estimate for your place?`\n    : `Storm season's a good reminder to check your roof before it becomes an emergency. Want a free inspection booked in?`,\n  day14: `Still here whenever you're ready ${name} - no pressure at all. Feel free to message any time.`,\n  monthly: isSolar\n    ? `Checking in ${name} - the STC rebate steps down again on 1 Jan. If solar's still on your radar, worth locking in before then.`\n    : `Just checking in ${name} - let us know if your roofing plans have moved forward and we'll get a quote sorted.`\n};\n\nreturn { json: { ...$json, text: library[$json.stage] || library.monthly } };"
+      }
+    },
+    {
+      "id": "code-build-send-drip",
+      "name": "Build Send - Drip",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 0],
+      "parameters": {
+        "jsCode": "const channel = ($json.externalChatId || '').split(':')[0] || 'none';\nconst id = ($json.externalChatId || '').split(':')[1] || '';\nreturn { json: { ...$json, channel, id } };"
+      }
+    },
+    {
+      "id": "if-has-channel-drip",
+      "name": "Has Chat Channel?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1540, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ ['telegram','meta','instagram','whatsapp'].includes($json.channel) }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-send-chat-drip",
+      "name": "Send Chat Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, -80],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.channel === 'telegram' ? 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' : ($json.channel === 'whatsapp' ? 'https://graph.facebook.com/v19.0/' + $env.WHATSAPP_PHONE_NUMBER_ID + '/messages' : 'https://graph.facebook.com/v19.0/me/messages?access_token=' + $env.META_PAGE_ACCESS_TOKEN) }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "={{ $json.channel === 'whatsapp' ? 'Bearer ' + $env.WHATSAPP_ACCESS_TOKEN : '' }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.channel === 'telegram' ? JSON.stringify({ chat_id: $json.id, text: $json.text }) : ($json.channel === 'whatsapp' ? JSON.stringify({ messaging_product: 'whatsapp', to: $json.id, type: 'text', text: { body: $json.text } }) : JSON.stringify({ recipient: { id: $json.id }, message: { text: $json.text } })) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-send-sms-drip",
+      "name": "Send SMS Fallback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, 80],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "form-urlencoded",
+        "bodyParameters": { "parameters": [ { "name": "To", "value": "={{ $json.phone }}" }, { "name": "From", "value": "={{ $env.TWILIO_FROM_NUMBER }}" }, { "name": "Body", "value": "={{ $json.text }}" } ] },
+        "options": {}
+      },
+      "credentials": { "httpBasicAuth": { "id": "twilio-basic-auth", "name": "Twilio Basic Auth" } }
+    },
+    {
+      "id": "http-advance-drip-stage",
+      "name": "Update Contact - Advance Drip Stage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, 0],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $('Build Send - Drip').item.json.contactId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { drip_stage: $('Build Send - Drip').item.json.nextStage, last_ai_contact_at: Date.now() } }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Daily at 9am": { "main": [[{ "node": "Find Cold Nurture Contacts", "type": "main", "index": 0 }]] },
+    "Find Cold Nurture Contacts": { "main": [[{ "node": "Split Cold Contacts", "type": "main", "index": 0 }]] },
+    "Split Cold Contacts": { "main": [[{ "node": "Compute Due Stage", "type": "main", "index": 0 }]] },
+    "Compute Due Stage": { "main": [[{ "node": "Is Due Today?", "type": "main", "index": 0 }]] },
+    "Is Due Today?": { "main": [[{ "node": "Pick Message Content", "type": "main", "index": 0 }], []] },
+    "Pick Message Content": { "main": [[{ "node": "Build Send - Drip", "type": "main", "index": 0 }]] },
+    "Build Send - Drip": { "main": [[{ "node": "Has Chat Channel?", "type": "main", "index": 0 }]] },
+    "Has Chat Channel?": {
+      "main": [
+        [{ "node": "Send Chat Message", "type": "main", "index": 0 }],
+        [{ "node": "Send SMS Fallback", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Chat Message": { "main": [[{ "node": "Update Contact - Advance Drip Stage", "type": "main", "index": 0 }]] },
+    "Send SMS Fallback": { "main": [[{ "node": "Update Contact - Advance Drip Stage", "type": "main", "index": 0 }]] }
+  }
+}

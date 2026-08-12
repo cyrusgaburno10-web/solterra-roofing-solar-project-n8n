@@ -1,0 +1,920 @@
+<title>Lead-to-Booking Operations Flow — AU Roofing &amp; Solar</title>
+
+<style>
+  :root {
+    --paper: #eeede7;
+    --paper-raised: #f7f6f2;
+    --paper-stamp: #e4e2d9;
+    --ink: #201e1a;
+    --ink-dim: #5c584e;
+    --line: #c7c2b4;
+    --accent-hot: #c94f19;
+    --accent-solar: #145e76;
+    --accent-slate: #48585b;
+    --success: #2f7a4a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #17191a;
+      --paper-raised: #1e2123;
+      --paper-stamp: #24272a;
+      --ink: #ede9df;
+      --ink-dim: #a29d90;
+      --line: #383b3a;
+      --accent-hot: #ff7a3b;
+      --accent-solar: #56b8d6;
+      --accent-slate: #93a3a6;
+      --success: #57b87b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #17191a;
+    --paper-raised: #1e2123;
+    --paper-stamp: #24272a;
+    --ink: #ede9df;
+    --ink-dim: #a29d90;
+    --line: #383b3a;
+    --accent-hot: #ff7a3b;
+    --accent-solar: #56b8d6;
+    --accent-slate: #93a3a6;
+    --success: #57b87b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--line) 35%, transparent) 0px, transparent 1px, transparent 96px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--line) 35%, transparent) 0px, transparent 1px, transparent 96px);
+    color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+
+  main {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 56px 24px 90px;
+  }
+
+  header.docket {
+    border: 1.5px solid var(--ink);
+    padding: 22px 26px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px 24px;
+    background: var(--paper-raised);
+  }
+  header.docket .doc-title {
+    grid-column: 1 / -1;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    margin: 0 0 2px;
+  }
+  header.docket .doc-sub {
+    grid-column: 1 / -1;
+    color: var(--ink-dim);
+    font-size: 0.98rem;
+    max-width: 68ch;
+  }
+  header.docket .meta-block {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+    margin-top: 4px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+  header.docket .meta-block strong {
+    color: var(--ink);
+    display: block;
+    font-size: 0.9rem;
+    letter-spacing: 0;
+    margin-top: 2px;
+  }
+
+  section { margin-top: 52px; }
+
+  h2 {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-solar);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 10px;
+    margin: 0 0 20px;
+  }
+  h2 span.num { color: var(--ink-dim); margin-right: 10px; }
+  h3 {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    margin: 28px 0 12px;
+  }
+
+  p.lede {
+    max-width: 70ch;
+    font-size: 1.05rem;
+  }
+  p.note {
+    max-width: 72ch;
+    font-size: 0.92rem;
+    color: var(--ink-dim);
+  }
+
+  .verdict {
+    border: 1.5px solid var(--success);
+    background: color-mix(in srgb, var(--success) 8%, var(--paper-raised));
+    padding: 16px 20px;
+    margin: 18px 0 22px;
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+  }
+  .verdict .stamp {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--success);
+    border: 1px solid var(--success);
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .verdict p { margin: 0; font-size: 0.98rem; }
+
+  .diagram-frame {
+    border: 1.5px solid var(--ink);
+    background: var(--paper-raised);
+    padding: 18px 18px 8px;
+    position: relative;
+  }
+  .diagram-frame::before,
+  .diagram-frame::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--ink);
+  }
+  .diagram-frame::before { top: -1.5px; left: -1.5px; border-right: none; border-bottom: none; }
+  .diagram-frame::after { bottom: -1.5px; right: -1.5px; border-left: none; border-top: none; }
+  .diagram-caption-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    padding: 10px 4px 4px;
+  }
+  figure { margin: 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+    padding: 6px 4px 2px;
+    max-width: 72ch;
+  }
+
+  .changes {
+    display: grid;
+    gap: 14px;
+  }
+  .change {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 6px 20px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .change:first-child { border-top: none; padding-top: 0; }
+  .change .tag {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-hot);
+    align-self: start;
+  }
+  .change .body { font-size: 0.98rem; }
+  .change .body b { color: var(--ink); }
+  .change.fix .tag { color: var(--accent-hot); }
+  .change.fix { background: color-mix(in srgb, var(--accent-hot) 6%, transparent); margin: 0 -14px; padding: 14px; border-top: none; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.94rem;
+  }
+  caption { display: none; }
+  thead th {
+    text-align: left;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    border-bottom: 1px solid var(--ink);
+    padding: 0 12px 8px 0;
+  }
+  tbody td {
+    padding: 12px 12px 12px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.stage { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; font-size: 0.82rem; white-space: nowrap; color: var(--ink); }
+  td.tool { color: var(--accent-solar); font-size: 0.88rem; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); font-weight: 600; }
+  .table-scroll { overflow-x: auto; }
+  .src { color: var(--ink-dim); font-size: 0.8rem; }
+
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .stack-cell {
+    background: var(--paper-raised);
+    padding: 16px 18px;
+  }
+  .stack-cell .cat {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-slate);
+    margin-bottom: 6px;
+  }
+  .stack-cell .tools { font-size: 0.95rem; }
+  .stack-cell .tools b { color: var(--ink); }
+  .stack-cell .cost {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--success);
+    border: 1px solid var(--success);
+    border-radius: 3px;
+    padding: 2px 6px;
+  }
+  .stack-cell .cost.paid { color: var(--accent-hot); border-color: var(--accent-hot); }
+
+  .total-box {
+    border: 1.5px solid var(--ink);
+    background: var(--paper-stamp);
+    padding: 18px 20px;
+    margin-top: 1px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .total-box .label {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+  }
+  .total-box .figure {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .total-box .compare { font-size: 0.85rem; color: var(--ink-dim); max-width: 32ch; }
+
+  .config-panel {
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+  }
+  .config-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 4px 20px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .config-row:last-child { border-bottom: none; }
+  .config-row .k {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-solar);
+  }
+  .config-row .v { font-size: 0.95rem; }
+  .config-row .v code {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--paper-stamp);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .calc {
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .calc h4 {
+    margin: 0 0 12px;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+  }
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 0;
+    font-size: 0.92rem;
+    border-bottom: 1px dashed var(--line);
+  }
+  .calc-row:last-child { border-bottom: none; padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--ink); font-weight: 700; }
+  .calc-row .v { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+  .calc-row .k { color: var(--ink-dim); }
+  .calc-row:last-child .k { color: var(--ink); }
+  .assumption { font-size: 0.78rem; color: var(--accent-hot); }
+  .sourced { font-size: 0.78rem; color: var(--success); }
+
+  @media (max-width: 640px) {
+    .change, .config-row { grid-template-columns: 1fr; }
+    .stack-grid { grid-template-columns: 1fr; }
+    header.docket { grid-template-columns: 1fr; }
+    .total-box { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+
+<main>
+
+  <header class="docket">
+    <div class="doc-title">Lead-to-Booking Operations Flow</div>
+    <div class="doc-sub">AU roofing &amp; solar automation blueprint, checked against real 2026 close-rate, lead-cost and service-pricing benchmarks — n8n as the automation layer, free HubSpot as the CRM.</div>
+    <div class="meta-block">
+      <div>Trade<strong>Roofing / Solar Install</strong></div>
+      <div>Region<strong>Australia</strong></div>
+      <div>Rev<strong>04 — standardized + costed</strong></div>
+      <div>Prepared<strong>11 Aug 2026</strong></div>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">01</span>Verdict</h2>
+    <div class="verdict">
+      <span class="stamp">Yes, with 2 fixes</span>
+      <p>The funnel shape matches how real AU roofing/solar operators run their pipeline — checked against current close-rate, lead-cost and service-pricing data below, not assumed. Two things broke since the last pass and are corrected in this revision: <b>ManyChat's free tier was cut to 25 contacts in March 2026</b> (unusable at real lead volume), and <b>HubSpot Free ships with zero workflow automation</b>, not "limited" automation. Since you're already running n8n, it now carries the entire automation layer and replaces the Make.com references throughout — no reason to run two automation platforms side by side.</p>
+    </div>
+    <p class="lede">Sections 04–05 add sourced 2026 AU pricing for the services this business actually sells, and the lead-to-won-job math that shows the funnel pays for itself. Section 03 has the tool corrections in full.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span>The workflow</h2>
+    <div class="diagram-frame">
+      <figure>
+        <svg viewBox="0 0 1400 1780" role="img" aria-label="Flowchart: six lead sources — referrals, Facebook and Instagram, website, Telegram, Google search, and missed-call text-back, plus an optional WhatsApp channel — feed a custom AI agent, which qualifies leads and writes them into a free HubSpot CRM. A self-hosted n8n automation layer drives the split into a booking calendar or an AI follow-up drip, both converging on an appointment, reminder, and completed-or-not decision. Completed jobs get a review request, referral offer and solar check-in that loops back to the referral source; incomplete ones get recovery follow-up that loops back into the AI drip.">
+
+          <defs>
+            <marker id="arrow-ink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"></path>
+            </marker>
+            <marker id="arrow-solar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent-solar)"></path>
+            </marker>
+            <marker id="arrow-hot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent-hot)"></path>
+            </marker>
+            <marker id="arrow-slate" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent-slate)"></path>
+            </marker>
+            <marker id="arrow-success" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--success)"></path>
+            </marker>
+          </defs>
+
+          <g font-family="ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace">
+
+          <!-- ===== SOURCES ROW (6) ===== -->
+          <g>
+            <rect x="40" y="38" width="190" height="64" rx="6" fill="var(--paper)" stroke="var(--accent-slate)" stroke-width="1.5"></rect>
+            <text x="135" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">REFERRAL /</text>
+            <text x="135" y="80" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">PAST CUSTOMER</text>
+            <text x="135" y="94" text-anchor="middle" font-size="9" fill="var(--ink-dim)">(loop, see below)</text>
+          </g>
+
+          <g>
+            <rect x="260" y="38" width="190" height="64" rx="6" fill="var(--paper)" stroke="var(--accent-slate)" stroke-width="1.5"></rect>
+            <text x="355" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">FACEBOOK &amp;</text>
+            <text x="355" y="80" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">INSTAGRAM</text>
+            <text x="355" y="94" text-anchor="middle" font-size="9" fill="var(--ink-dim)">ads + DM via Meta API (n8n)</text>
+          </g>
+
+          <g>
+            <rect x="480" y="38" width="190" height="64" rx="6" fill="var(--paper)" stroke="var(--accent-slate)" stroke-width="1.5"></rect>
+            <text x="575" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">WEBSITE</text>
+            <text x="575" y="80" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">(rebuild)</text>
+            <text x="575" y="94" text-anchor="middle" font-size="9" fill="var(--ink-dim)">chat + forms → HubSpot</text>
+          </g>
+
+          <g>
+            <rect x="700" y="38" width="190" height="64" rx="6" fill="var(--paper)" stroke="var(--accent-slate)" stroke-width="1.5"></rect>
+            <text x="795" y="73" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">TELEGRAM</text>
+            <text x="795" y="89" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">bot — primary channel</text>
+          </g>
+
+          <g>
+            <rect x="920" y="38" width="190" height="64" rx="6" fill="var(--paper)" stroke="var(--accent-slate)" stroke-width="1.5"></rect>
+            <text x="1015" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">GOOGLE SEARCH</text>
+            <text x="1015" y="80" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">/ LOCAL SERVICE ADS</text>
+            <text x="1015" y="94" text-anchor="middle" font-size="9" fill="var(--ink-dim)">optional add-on</text>
+          </g>
+
+          <g>
+            <rect x="1140" y="38" width="190" height="64" rx="6" fill="var(--paper)" stroke="var(--accent-slate)" stroke-width="1.5"></rect>
+            <text x="1235" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">MISSED-CALL</text>
+            <text x="1235" y="80" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">TEXT-BACK</text>
+            <text x="1235" y="94" text-anchor="middle" font-size="9" fill="var(--ink-dim)">unanswered → auto-SMS</text>
+          </g>
+
+          <!-- converge to AI Agent -->
+          <line x1="135" y1="102" x2="560" y2="188" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+          <line x1="355" y1="102" x2="618" y2="188" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+          <line x1="575" y1="102" x2="676" y2="188" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+          <line x1="795" y1="102" x2="734" y2="188" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+          <line x1="1015" y1="102" x2="792" y2="188" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+          <line x1="1235" y1="102" x2="850" y2="188" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+
+          <!-- ===== AI AGENT ===== -->
+          <rect x="480" y="188" width="440" height="84" rx="6" fill="var(--paper-raised)" stroke="var(--accent-solar)" stroke-width="2"></rect>
+          <text x="700" y="220" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">AI AGENT — INSTANT RESPONSE</text>
+          <text x="700" y="238" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">unifies Telegram, FB/IG DM, website chat — via n8n</text>
+          <text x="700" y="254" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">first reply &lt;60s · logs source + UTM to HubSpot</text>
+
+          <!-- whatsapp optional node -->
+          <rect x="1120" y="195" width="230" height="70" rx="6" fill="var(--paper)" stroke="var(--accent-slate)" stroke-width="1.5" stroke-dasharray="5 4"></rect>
+          <text x="1235" y="222" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">WHATSAPP (OPTIONAL)</text>
+          <text x="1235" y="236" text-anchor="middle" font-size="10" fill="var(--ink-dim)">same AI agent, extra channel</text>
+          <text x="1235" y="252" text-anchor="middle" font-size="9" fill="var(--ink-dim)">setup: see §8</text>
+          <line x1="1120" y1="222" x2="925" y2="222" stroke="var(--accent-slate)" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#arrow-slate)"></line>
+
+          <line x1="700" y1="272" x2="700" y2="345" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+
+          <!-- ===== QUALIFICATION ===== -->
+          <rect x="460" y="345" width="480" height="150" rx="6" fill="var(--paper-raised)" stroke="var(--accent-solar)" stroke-width="2"></rect>
+          <text x="700" y="372" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">LEAD QUALIFICATION</text>
+          <text x="490" y="394" font-size="10.5" fill="var(--ink-dim)">• owner-occupier? suburb in service area?</text>
+          <text x="490" y="411" font-size="10.5" fill="var(--ink-dim)">• job type: repair / re-roof / solar / solar+battery</text>
+          <text x="490" y="428" font-size="10.5" fill="var(--ink-dim)">• urgency: active leak or storm damage = hot</text>
+          <text x="490" y="445" font-size="10.5" fill="var(--ink-dim)">• roof/bill details, finance interest (Brighte/Plenti)</text>
+          <text x="490" y="462" font-size="10.5" fill="var(--ink-dim)">• timeframe to proceed</text>
+          <text x="490" y="482" font-size="10.5" font-weight="700" fill="var(--accent-solar)">→ scores lead: HOT / WARM / COLD</text>
+
+          <!-- human escalation -->
+          <rect x="1115" y="370" width="230" height="100" rx="6" fill="var(--paper)" stroke="var(--accent-hot)" stroke-width="1.5" stroke-dasharray="5 4"></rect>
+          <text x="1230" y="396" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">HUMAN ESCALATION</text>
+          <text x="1230" y="412" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">complex question or</text>
+          <text x="1230" y="425" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">high-value job (full re-roof,</text>
+          <text x="1230" y="438" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">solar+battery) → rep alert</text>
+          <text x="1230" y="455" text-anchor="middle" font-size="9" fill="var(--ink-dim)">(Telegram alert, real time)</text>
+          <line x1="940" y1="405" x2="1115" y2="405" stroke="var(--accent-hot)" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#arrow-hot)"></line>
+
+          <line x1="700" y1="495" x2="700" y2="588" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+
+          <!-- ===== CRM ===== -->
+          <rect x="540" y="588" width="320" height="84" rx="6" fill="var(--paper-raised)" stroke="var(--accent-solar)" stroke-width="2"></rect>
+          <text x="700" y="618" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">CRM — HUBSPOT (FREE)</text>
+          <text x="700" y="636" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">native FB/IG lead-ad sync + free CRM API</text>
+          <text x="700" y="652" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">tags: source · score · suburb · job type</text>
+
+          <!-- n8n side node -->
+          <rect x="150" y="598" width="230" height="70" rx="6" fill="var(--paper-raised)" stroke="var(--accent-solar)" stroke-width="2"></rect>
+          <text x="265" y="620" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">N8N (SELF-HOSTED)</text>
+          <text x="265" y="636" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">free — ~$5–7/mo VPS only</text>
+          <text x="265" y="650" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">drip · reminders · reviews</text>
+          <line x1="380" y1="633" x2="540" y2="630" stroke="var(--accent-solar)" stroke-width="1.3" marker-end="url(#arrow-solar)"></line>
+          <text x="460" y="618" text-anchor="middle" font-size="9" fill="var(--ink-dim)">reads/writes CRM</text>
+
+          <!-- split -->
+          <line x1="620" y1="672" x2="360" y2="758" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+          <text x="440" y="705" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">HOT / WARM</text>
+          <text x="440" y="719" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">ready now</text>
+
+          <line x1="780" y1="672" x2="1040" y2="750" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+          <text x="960" y="705" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">COLD</text>
+          <text x="960" y="719" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">not ready yet</text>
+
+          <!-- ===== CALENDAR / AI DRIP ===== -->
+          <rect x="195" y="758" width="270" height="84" rx="6" fill="var(--paper-raised)" stroke="var(--accent-slate)" stroke-width="2"></rect>
+          <text x="330" y="789" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">CALENDAR</text>
+          <text x="330" y="806" text-anchor="middle" font-size="10" fill="var(--ink-dim)">HubSpot Meetings (free) —</text>
+          <text x="330" y="820" text-anchor="middle" font-size="10" fill="var(--ink-dim)">per-rep links by region</text>
+
+          <rect x="935" y="750" width="270" height="100" rx="6" fill="var(--paper-raised)" stroke="var(--accent-slate)" stroke-width="2"></rect>
+          <text x="1070" y="778" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">AI DRIP MESSAGES</text>
+          <text x="1070" y="795" text-anchor="middle" font-size="10" fill="var(--ink-dim)">Day 1 / 3 / 7 / 14, then monthly</text>
+          <text x="1070" y="809" text-anchor="middle" font-size="10" fill="var(--ink-dim)">sent via Telegram + email</text>
+          <text x="1070" y="823" text-anchor="middle" font-size="9" fill="var(--ink-dim)">runs in n8n (HubSpot free has 0 workflows)</text>
+
+          <path d="M 935 815 C 720 850, 620 850, 465 815" fill="none" stroke="var(--accent-solar)" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#arrow-solar)"></path>
+          <text x="700" y="862" text-anchor="middle" font-size="10" font-weight="700" fill="var(--accent-solar)">re-qualified → ready to book</text>
+
+          <line x1="330" y1="842" x2="620" y2="938" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+
+          <!-- ===== APPOINTMENT ===== -->
+          <rect x="520" y="938" width="360" height="84" rx="6" fill="var(--paper-raised)" stroke="var(--accent-slate)" stroke-width="2"></rect>
+          <text x="700" y="969" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">APPOINTMENT</text>
+          <text x="700" y="987" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">site inspection / quote / install — tech assigned,</text>
+          <text x="700" y="1002" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">HubSpot deal moves to matching pipeline stage</text>
+
+          <line x1="700" y1="1022" x2="700" y2="1075" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+
+          <!-- ===== REMINDER ===== -->
+          <rect x="560" y="1075" width="280" height="70" rx="6" fill="var(--paper-raised)" stroke="var(--accent-slate)" stroke-width="2"></rect>
+          <text x="700" y="1103" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">REMINDER</text>
+          <text x="700" y="1120" text-anchor="middle" font-size="10" fill="var(--ink-dim)">24 hr + 1 hr — Telegram, SMS backup</text>
+
+          <line x1="700" y1="1145" x2="700" y2="1190" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#arrow-ink)"></line>
+          <text x="900" y="1200" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)" font-style="italic">quotes: allow a 2–4 wk decision window before scoring below</text>
+
+          <!-- ===== COMPLETED DIAMOND ===== -->
+          <polygon points="700,1190 830,1260 700,1330 570,1260" fill="var(--paper-raised)" stroke="var(--ink)" stroke-width="2"></polygon>
+          <text x="700" y="1256" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">COMPLETED?</text>
+          <text x="700" y="1272" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">job held &amp; accepted</text>
+
+          <line x1="640" y1="1300" x2="380" y2="1392" stroke="var(--success)" stroke-width="1.5" marker-end="url(#arrow-success)"></line>
+          <text x="470" y="1355" text-anchor="middle" font-size="11" font-weight="700" fill="var(--success)">YES</text>
+
+          <line x1="770" y1="1290" x2="1010" y2="1380" stroke="var(--accent-hot)" stroke-width="1.5" marker-end="url(#arrow-hot)"></line>
+          <text x="940" y="1345" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent-hot)">NO</text>
+
+          <!-- ===== YES / NO outcome row 1 ===== -->
+          <rect x="190" y="1392" width="280" height="76" rx="6" fill="var(--paper-raised)" stroke="var(--success)" stroke-width="2"></rect>
+          <text x="330" y="1421" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">REVIEW REQUEST</text>
+          <text x="330" y="1438" text-anchor="middle" font-size="10" fill="var(--ink-dim)">Google review ask — T+2 days</text>
+          <text x="330" y="1453" text-anchor="middle" font-size="10" fill="var(--ink-dim)">sent via Telegram / email</text>
+
+          <rect x="925" y="1380" width="290" height="100" rx="6" fill="var(--paper-raised)" stroke="var(--accent-hot)" stroke-width="2"></rect>
+          <text x="1070" y="1408" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">RECOVERY FOLLOW-UP</text>
+          <text x="1070" y="1425" text-anchor="middle" font-size="10" fill="var(--ink-dim)">no-show → 1-click reschedule</text>
+          <text x="1070" y="1440" text-anchor="middle" font-size="10" fill="var(--ink-dim)">quote declined → objection cadence</text>
+          <text x="1070" y="1455" text-anchor="middle" font-size="10" fill="var(--ink-dim)">(price / timing / comparing quotes)</text>
+
+          <line x1="330" y1="1468" x2="330" y2="1515" stroke="var(--success)" stroke-width="1.3" marker-end="url(#arrow-success)"></line>
+          <line x1="1070" y1="1480" x2="1070" y2="1530" stroke="var(--accent-hot)" stroke-width="1.3" marker-end="url(#arrow-hot)"></line>
+
+          <!-- ===== outcome row 2 ===== -->
+          <rect x="180" y="1515" width="300" height="130" rx="6" fill="var(--paper-raised)" stroke="var(--success)" stroke-width="2"></rect>
+          <text x="330" y="1542" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">REFERRAL + UPSELL</text>
+          <text x="330" y="1560" text-anchor="middle" font-size="10" fill="var(--ink-dim)">refer-a-mate offer</text>
+          <text x="330" y="1575" text-anchor="middle" font-size="10" fill="var(--ink-dim)">cross-sell: gutter guard, battery,</text>
+          <text x="330" y="1590" text-anchor="middle" font-size="10" fill="var(--ink-dim)">maintenance plan</text>
+          <text x="330" y="1608" text-anchor="middle" font-size="10" fill="var(--accent-solar)">solar: 30-day check-in + STC paperwork</text>
+          <text x="330" y="1625" text-anchor="middle" font-size="10" fill="var(--accent-solar)">confirmation</text>
+
+          <rect x="920" y="1530" width="300" height="100" rx="6" fill="var(--paper-raised)" stroke="var(--accent-hot)" stroke-width="2"></rect>
+          <text x="1070" y="1558" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">NO RESPONSE AFTER</text>
+          <text x="1070" y="1575" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">3 RECOVERY TOUCHES</text>
+          <text x="1070" y="1594" text-anchor="middle" font-size="10" fill="var(--ink-dim)">not lost — downgraded to</text>
+          <text x="1070" y="1609" text-anchor="middle" font-size="10" fill="var(--ink-dim)">long-term nurture instead</text>
+
+          <!-- loop: referral+upsell -> referral source (top) -->
+          <path d="M 200 1580 L 30 1580 L 30 70 L 40 70" fill="none" stroke="var(--success)" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#arrow-success)"></path>
+          <text x="48" y="860" text-anchor="middle" font-size="10" font-weight="700" fill="var(--success)" transform="rotate(-90 48 860)">REFERRED LEAD → BACK TO INTAKE</text>
+
+          <!-- loop: no-response -> AI drip -->
+          <path d="M 1220 1580 L 1290 1580 L 1290 800 L 1205 800" fill="none" stroke="var(--accent-hot)" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#arrow-hot)"></path>
+          <text x="1340" y="1190" text-anchor="middle" font-size="10" font-weight="700" fill="var(--accent-hot)" transform="rotate(-90 1340 1190)">REJOINS LONG-TERM NURTURE DRIP</text>
+
+          </g>
+
+          <!-- legend -->
+          <g font-family="ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace" font-size="10">
+            <line x1="40" y1="1700" x2="80" y2="1700" stroke="var(--ink)" stroke-width="1.5"></line>
+            <text x="88" y="1704" fill="var(--ink-dim)">standard flow</text>
+
+            <line x1="240" y1="1700" x2="280" y2="1700" stroke="var(--accent-solar)" stroke-width="1.5" stroke-dasharray="6 4"></line>
+            <text x="288" y="1704" fill="var(--ink-dim)">automation / conversion loop</text>
+
+            <line x1="540" y1="1700" x2="580" y2="1700" stroke="var(--accent-hot)" stroke-width="1.5" stroke-dasharray="6 4"></line>
+            <text x="588" y="1704" fill="var(--ink-dim)">exception, escalation or recovery</text>
+
+            <line x1="880" y1="1700" x2="920" y2="1700" stroke="var(--accent-slate)" stroke-width="1.5" stroke-dasharray="6 4"></line>
+            <text x="928" y="1704" fill="var(--ink-dim)">optional — not required for MVP</text>
+          </g>
+
+        </svg>
+      </figure>
+      <div class="diagram-caption-row">
+        <span>Fig. 1 — full funnel, intake to review</span>
+        <span>1400 × 1780</span>
+      </div>
+    </div>
+    <figcaption>n8n now carries the entire automation layer — not just the pieces HubSpot Free can't do, since it can't do any multi-step workflow at all on the free tier.</figcaption>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span>Standardization check &amp; corrections</h2>
+    <p class="lede">Everything below was re-checked this session. Two entries are marked <b>correction</b> — they were wrong in the previous revision and are fixed here.</p>
+    <div class="changes">
+      <div class="change fix">
+        <div class="tag">Correction</div>
+        <div class="body"><b>ManyChat's free plan no longer works for this.</b> As of a March 2026 pricing change, the free tier caps out at 25 active contacts and 2 channels — down from the 1,000-contact free tier it used to have. That's a sandbox, not something a live business can run leads through. Since Meta requires DM automation to happen on its own surface (you can't redirect a Messenger conversation to Telegram), the fix is to connect the Messenger + Instagram Graph API directly into an n8n webhook — free, and squarely within reach for an n8n user. ManyChat Essential ($14/mo) is the fallback if a no-code layer is preferred over building the webhook.</div>
+      </div>
+      <div class="change fix">
+        <div class="tag">Correction</div>
+        <div class="body"><b>HubSpot Free has no workflow automation at all</b> — not a smaller version of it. Confirmed limits: 1,000 marketing contacts, 2 users, 1 deal pipeline, 10 custom properties, 2,000 marketing emails/month, and every chat widget/meeting link/landing page carries HubSpot branding. That means n8n isn't filling a gap next to HubSpot's automation — it <i>is</i> the automation layer, end to end.</div>
+      </div>
+      <div class="change">
+        <div class="tag">Automation: n8n</div>
+        <div class="body">Self-hosted n8n is free software with unlimited workflows and executions — you only pay for the server it runs on (~$5–7/month on a small VPS or managed host). n8n Cloud starts at $24/month for 2,500 executions if server upkeep isn't wanted. Either way it replaces every Make.com reference from the previous revision, since running both would just be two automation platforms doing the same job.</div>
+      </div>
+      <div class="change">
+        <div class="tag">Telegram, kept primary</div>
+        <div class="body">Free, unlimited Bot API, fine as the AI agent's backbone. The one planning point: customers won't already have you in Telegram the way some might have WhatsApp, so the funnel needs a deliberate "chat with us on Telegram" prompt — FB/IG bio link, website chat launcher, invoices, vehicle signage.</div>
+      </div>
+      <div class="change">
+        <div class="tag">WhatsApp, optional</div>
+        <div class="body">Meta moved WhatsApp Business off conversation-window pricing to per-delivered-message billing in July 2025. Service replies inside the 24-hour customer-service window are still free; marketing/utility template sends are billed per message at Meta's category-and-country rate card, plus your BSP's markup (roughly $0.003–$0.01/message on top for most providers). Full config notes in §8.</div>
+      </div>
+      <div class="change">
+        <div class="tag">Website rebuild</div>
+        <div class="body">WordPress + Elementor (both free) remains the AU trades-site standard, paired with HubSpot's official free WordPress plugin so forms/chat sync to the CRM natively.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span>AU service &amp; pricing reference</h2>
+    <p class="lede">Sourced from current 2026 AU market data. Use these as quoting anchors, not final prices — always confirm against your own material/labour costs and local competition.</p>
+    <div class="table-scroll">
+      <table>
+        <caption>Sourced 2026 AU service pricing</caption>
+        <thead>
+          <tr><th>Service</th><th>Typical AU price, 2026</th><th>Source note</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="stage">Roof restoration<br>(clean, reseal, repaint)</td>
+            <td class="num">$25–$50/m² · $2,000–$12,000 typical house</td>
+            <td class="src">Sydney ~$22–45/m², Melbourne ~$25–55/m²; 80m² roof ≈ $2,000–4,000, 150m² ≈ $3,750–7,500</td>
+          </tr>
+          <tr>
+            <td class="stage">Full re-roof — Colorbond</td>
+            <td class="num">$92–$205/m²</td>
+            <td class="src">Sydney-sourced range; totals commonly land $17,250–$46,000 for a full house</td>
+          </tr>
+          <tr>
+            <td class="stage">Full re-roof — tile</td>
+            <td class="num">$115–$255/m²</td>
+            <td class="src">Same range as above, tile runs above Colorbond per m²</td>
+          </tr>
+          <tr>
+            <td class="stage">Solar — 6.6kW system</td>
+            <td class="num">$5,000–$6,000 typical (range $4,000–$8,500)</td>
+            <td class="src">~$0.88–$0.95/W installed after STC discount, incl. GST; premium panels/inverters run 20–30% above</td>
+          </tr>
+          <tr>
+            <td class="stage">Battery — 10kWh</td>
+            <td class="num">$8,000–$13,000 before rebate · $5,500–$9,500 after</td>
+            <td class="src">Cheaper Home Batteries Program rebate ≈ $2,500 for a 10kWh system in 2026</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="note" style="margin-top:18px;">Not sourced this session — priced against local supplier cost rather than a benchmark: minor leak/storm repairs, gutter replacement/guard, annual maintenance plans, referral incentive value. Trade rules of thumb exist for these but weren't verified against live 2026 data, so treat any figure you've seen elsewhere for them as indicative only.</p>
+
+    <h3>STC rebate mechanics (why "act now" is a legitimate urgency angle)</h3>
+    <p class="note">The federal STC scheme phases out by 31 December 2030. The "deeming period" — years of future generation a system is credited for up front — steps down every year: 5 years in 2026, falling to 4 in 2027, 3 in 2028, 2 in 2029, 1 in 2030. The drop from 6 to 5 years on 1 January 2026 already cut the rebate on a standard 6.6kW system by roughly $500–$600 versus 2025. At the current STC spot price (~$35–$42, typically ~$38), a Zone 3 6.6kW system earns about 45 certificates worth roughly $1,710 — landing the typical point-of-sale discount around $2,000–$2,500. This is a real, compounding reason for a lead to book this year rather than next — worth building directly into the AI agent's qualification script and the follow-up drip, not just mentioning once.</p>
+
+    <p class="src">Sources: <a href="https://www.solarchoice.net.au/learn/solar-rebates/stc-scheme/">Solar Choice — STC Scheme</a>, <a href="https://www.green.com.au/resources/solar-rebate">Green.com.au — Solar &amp; battery rebates</a>, <a href="https://www.solarchoice.net.au/solar-panels/solar-power-system-prices/">Solar Choice Price Index, July 2026</a>, <a href="https://whatsthedamage.com.au/solar-cost/">6.6kW Solar System Price 2026</a>, <a href="https://purepowersydneygroup.com.au/roof-restoration-cost-sydney-per-m2/">Roof Restoration Cost Per m² — Sydney</a>, <a href="https://www.modernsealroofing.com.au/blog/posts/roof-restoration-cost-in-melbourne-2026-price-guide/">Roof Restoration Cost — Melbourne 2026</a>, <a href="https://whatsthedamage.com.au/roofing-cost-sydney/">Roof Replacement Cost — Sydney 2026</a>, <a href="https://www.energymatters.com.au/renewable-news/10kw-solar-battery-price-australia/">10kW Solar Battery Price Australia</a>, <a href="https://www.gridly.com.au/guides/home-batteries/">Gridly — Home Battery Australia 2026</a>.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span>Lead economics — does the funnel pay for itself?</h2>
+    <p class="lede">Cost-per-lead and close-rate figures below are sourced. Booking-rate and show-rate are not — they're marked as assumptions to swap for your own numbers once the CRM has real data; they only exist to make the worked example complete.</p>
+
+    <h3>Sourced benchmarks</h3>
+    <p class="note"><span class="sourced">Lead cost:</span> roofing Facebook lead ads average $40–$80/lead in 2026 (optimized accounts as low as ~$22); storm-response campaigns run $10–$22/lead in the 72-hour post-hail window — the cheapest lead source in roofing. Australia's all-industry Facebook CPL benchmark opened 2026 at $60.50, moving with global trends but swinging harder month to month; the same trade, platform and year can cost 3× more per lead in a busy Sydney suburb than a regional town.</p>
+    <p class="note"><span class="sourced">Close rate (on appointments held):</span> roofing averages 27% overall — shared/non-exclusive leads close 8–20%, exclusive leads 25–35%, experienced reps in active storm markets 35–50%, new reps 10–15%. Solar sits lower: 10–20% overall, 13–17% as a healthy baseline, well-optimized operators 18–25%; new reps 10–20%, reps at 6–18 months 20–30%.</p>
+
+    <h3>Worked example — roofing, non-storm</h3>
+    <div class="calc">
+      <h4>100 Facebook leads @ average CPL</h4>
+      <div class="calc-row"><span class="k">Ad spend (100 leads × $60 avg CPL) <span class="sourced">sourced</span></span><span class="v">$6,000</span></div>
+      <div class="calc-row"><span class="k">Booked &amp; held appointments (40% of leads) <span class="assumption">assumption — replace with your data</span></span><span class="v">40 appts</span></div>
+      <div class="calc-row"><span class="k">Won jobs (27% close rate on appts) <span class="sourced">sourced</span></span><span class="v">≈11 jobs</span></div>
+      <div class="calc-row"><span class="k">Cost per won job</span><span class="v">≈$545</span></div>
+    </div>
+    <p class="note">Against a $2,000–$46,000 job value range from §4, that CAC is roughly 1–27% of a single job's revenue — the funnel is comfortably profitable on the first job alone, before referral or repeat value.</p>
+
+    <h3>Worked example — roofing, storm window</h3>
+    <div class="calc">
+      <h4>Same 100 leads, storm-response pricing and close rates</h4>
+      <div class="calc-row"><span class="k">Ad spend (100 leads × $16 avg CPL) <span class="sourced">sourced</span></span><span class="v">$1,600</span></div>
+      <div class="calc-row"><span class="k">Booked &amp; held appointments (40%) <span class="assumption">assumption</span></span><span class="v">40 appts</span></div>
+      <div class="calc-row"><span class="k">Won jobs (42% storm-market close rate) <span class="sourced">sourced</span></span><span class="v">≈17 jobs</span></div>
+      <div class="calc-row"><span class="k">Cost per won job</span><span class="v">≈$94</span></div>
+    </div>
+    <p class="note">This is the financial case for the storm/insurance fast-lane already built into qualification (§ diagram) — it isn't just faster service, it's roughly a 6× improvement in cost-per-won-job.</p>
+
+    <h3>Worked example — solar</h3>
+    <div class="calc">
+      <h4>100 Facebook leads @ average CPL</h4>
+      <div class="calc-row"><span class="k">Ad spend (100 leads × $60 avg CPL) <span class="sourced">sourced</span></span><span class="v">$6,000</span></div>
+      <div class="calc-row"><span class="k">Booked &amp; held appointments (35%) <span class="assumption">assumption</span></span><span class="v">35 appts</span></div>
+      <div class="calc-row"><span class="k">Won jobs (15% mid-range solar close rate) <span class="sourced">sourced</span></span><span class="v">≈5 jobs</span></div>
+      <div class="calc-row"><span class="k">Cost per won job</span><span class="v">≈$1,200</span></div>
+    </div>
+    <p class="note">Against a $5,000–$6,000 typical 6.6kW job value, CAC runs ~20–24% of revenue — tighter than roofing, and the reason the quote decision-window nurture and financing (Brighte/Plenti) touches matter more for solar than for roofing, where comparison-shopping across 3 quotes is the norm.</p>
+
+    <p class="src">Sources: <a href="https://www.webtonic.io/blog/roofing-facebook-ads-statistics">Web Tonic — Roofing Facebook Ads Statistics 2026</a>, <a href="https://www.superads.ai/facebook-ads-costs/cost-per-lead/australia">SuperAds — Facebook Ads CPL Benchmarks, Australia</a>, <a href="https://www.subcontractorhub.com/blog/roofing-sales-close-rate">Subcontractor Hub — Roofing Sales Close Rate Benchmarks 2026</a>, <a href="https://www.grademyclose.com/blog/solar-sales-closing-rate-average">Grade My Close — Solar Sales Closing Rate by Channel</a>, <a href="https://enervio.io/blog/what-is-a-good-solar-lead-conversion-rate">Enervio — Solar Lead Conversion Rate Benchmarks</a>.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span>Stage-by-stage spec</h2>
+    <div class="table-scroll">
+      <table>
+        <caption>Stage-by-stage breakdown of the workflow</caption>
+        <thead>
+          <tr><th>Stage</th><th>What happens</th><th>AU-relevant tool / tactic</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="stage">INTAKE</td>
+            <td>FB/IG ads and DMs, website chat/forms, Telegram, referrals — all land in one CRM record.</td>
+            <td class="tool">Meta Lead Ads (native HubSpot sync) + direct Messenger/IG API via n8n webhook</td>
+          </tr>
+          <tr>
+            <td class="stage">AI AGENT</td>
+            <td>Answers within 60 seconds on whichever channel the lead used; captures name/suburb/job type.</td>
+            <td class="tool">Telegram Bot API (free) + Claude API (pay-per-token) fronting Telegram, FB/IG DM, website chat; WhatsApp optional</td>
+          </tr>
+          <tr>
+            <td class="stage">QUALIFICATION</td>
+            <td>Ownership, service-area, job type, urgency, budget/finance interest, timeframe → HOT/WARM/COLD score.</td>
+            <td class="tool">Scoring logic in the AI agent, written to HubSpot via the free CRM API</td>
+          </tr>
+          <tr>
+            <td class="stage">CRM</td>
+            <td>Single record per lead; tags drive every downstream automation and reporting view.</td>
+            <td class="tool">HubSpot Free CRM (1,000 marketing contacts, 2 users, 1 pipeline)</td>
+          </tr>
+          <tr>
+            <td class="stage">BOOKING</td>
+            <td>Hot/warm leads book straight onto a rep's calendar.</td>
+            <td class="tool">HubSpot Meetings (free) — one link per rep, routed by region since round-robin needs a paid tier</td>
+          </tr>
+          <tr>
+            <td class="stage">FOLLOW-UP</td>
+            <td>Cold leads get a value drip and a periodic re-ask; converts back to Booking when ready.</td>
+            <td class="tool">n8n scenario, sent via Telegram + email, cadence Day 1/3/7/14 then monthly</td>
+          </tr>
+          <tr>
+            <td class="stage">APPOINTMENT</td>
+            <td>Site inspection, quote call, or install — deal moves through the HubSpot pipeline.</td>
+            <td class="tool">HubSpot deal pipeline stages</td>
+          </tr>
+          <tr>
+            <td class="stage">REMINDER</td>
+            <td>24-hour and 1-hour nudge with the rep's name and photo to cut no-shows.</td>
+            <td class="tool">n8n scheduled send via Telegram, Twilio SMS as backup (~8c AUD/message)</td>
+          </tr>
+          <tr>
+            <td class="stage">COMPLETED — YES</td>
+            <td>Review ask at T+2 days, referral offer, cross-sell, solar 30-day check-in.</td>
+            <td class="tool">n8n trigger on deal-stage change → Google Business Profile review link</td>
+          </tr>
+          <tr>
+            <td class="stage">COMPLETED — NO</td>
+            <td>Reschedule link for no-shows; objection-handling cadence for declined quotes; unresponsive leads fold into long-term nurture.</td>
+            <td class="tool">n8n re-engagement scenario, Brighte/Plenti finance link on price objections</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">07</span>Recommended stack &amp; monthly cost</h2>
+    <div class="stack-grid">
+      <div class="stack-cell">
+        <div class="cat">CRM</div>
+        <div class="tools"><b>HubSpot Free</b> — contacts, deals, native FB/IG lead sync, live chat, one meeting scheduler. No workflow automation.</div>
+        <span class="cost">$0</span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">Automation layer</div>
+        <div class="tools"><b>n8n</b>, self-hosted — unlimited workflows/executions, runs the entire automation layer since HubSpot Free has none.</div>
+        <span class="cost paid">~$5–7/mo (VPS)</span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">FB &amp; Instagram</div>
+        <div class="tools">Direct Meta Messenger + Instagram Graph API via n8n webhook. ManyChat Essential only if a no-code layer is preferred.</div>
+        <span class="cost">$0 <span style="opacity:.7">(or $14/mo)</span></span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">Website</div>
+        <div class="tools"><b>WordPress + Elementor</b>, HubSpot's free WP plugin for forms/chat. AU hosting; <code>.com.au</code> needs an active ABN.</div>
+        <span class="cost paid">~$5–15/mo + ~$20–30/yr domain</span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">Messaging</div>
+        <div class="tools"><b>Telegram Bot API</b> as primary; <b>WhatsApp</b> wired in as an optional second channel (§8).</div>
+        <span class="cost">$0</span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">AI agent</div>
+        <div class="tools"><b>Claude API</b>, pay-per-token — a few cents per lead conversation at trade-business volumes.</div>
+        <span class="cost paid">~cents/lead</span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">SMS backup</div>
+        <div class="tools"><b>Twilio</b> — ~8c AUD per outbound SMS to an AU number, billed in USD (card FX fee 2–3% on top). No subscription.</div>
+        <span class="cost paid">~$0.08/msg</span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">WhatsApp (optional)</div>
+        <div class="tools">Service replies free inside the 24hr window; marketing/utility template sends billed per message at Meta's rate + BSP markup (~$0.003–$0.01/msg).</div>
+        <span class="cost paid">pay-per-message</span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">Reviews</div>
+        <div class="tools">No paid tool — n8n sends the Google Business Profile review link directly on job completion.</div>
+        <span class="cost">$0</span>
+      </div>
+      <div class="stack-cell">
+        <div class="cat">Financing &amp; compliance</div>
+        <div class="tools"><b>Brighte</b>/<b>Plenti</b> links; CEC accreditation + STC paperwork logged as a HubSpot deal property.</div>
+        <span class="cost">$0</span>
+      </div>
+    </div>
+    <div class="total-box">
+      <div>
+        <div class="label">Fixed monthly cost</div>
+        <div class="figure">≈ $10–25/month</div>
+      </div>
+      <div class="compare">Everything else is pay-per-use (SMS, WhatsApp templates, AI tokens, ad spend). Compare to a single-platform paid stack like GoHighLevel at $97–$497/month plus $20–$150/month in usage fees — the free/n8n stack trades a lower bill for more DIY assembly and ongoing maintenance, a fair trade while lean but worth revisiting once volume justifies a managed all-in-one platform.</div>
+    </div>
+    <p class="src" style="margin-top:14px;">Sources: <a href="https://www.usecarly.com/blog/hubspot-free-plan-limits/">HubSpot Free Plan Limits 2026</a>, <a href="https://setsmart.io/blog/manychat-pricing">ManyChat Pricing 2026</a>, <a href="https://automationatlas.io/answers/n8n-pricing-self-hosted-vs-cloud-2026/">n8n Pricing 2026</a>, <a href="https://www.twilio.com/en-us/sms/pricing/au">Twilio SMS Pricing — Australia</a>, <a href="https://blueticks.co/blog/whatsapp-business-api-pricing-2026">WhatsApp Business API Pricing 2026</a>, <a href="https://netpartners.marketing/gohighlevel-pricing-plans-explained-features-value-cost-comparison-2026/">GoHighLevel Pricing 2026</a>.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">08</span>WhatsApp integration — optional configuration</h2>
+    <p class="lede" style="margin-bottom: 20px;">Not required to launch. Add this only once Telegram/FB/IG/website volume justifies a second chat channel — the qualification logic doesn't change, only the transport does.</p>
+    <div class="config-panel">
+      <div class="config-row">
+        <div class="k">Provider</div>
+        <div class="v">Meta WhatsApp Cloud API direct, or Twilio's WhatsApp API if managing WhatsApp through the same account as SMS backup is preferred.</div>
+      </div>
+      <div class="config-row">
+        <div class="k">Trigger</div>
+        <div class="v">Inbound webhook from WhatsApp → same AI agent endpoint already handling Telegram in n8n. Route by a <code>channel</code> field, not a separate bot.</div>
+      </div>
+      <div class="config-row">
+        <div class="k">Where it plugs in</div>
+        <div class="v">Add a WhatsApp node to the existing n8n workflow alongside the Telegram node — same qualification, same HubSpot writes, same drip and reminder logic. No new automation to build.</div>
+      </div>
+      <div class="config-row">
+        <div class="k">Pricing model</div>
+        <div class="v">Per-delivered-message billing since July 2025 (conversation-window pricing is deprecated). Service replies inside the 24-hour customer-service window stay free; marketing and utility template sends are billed per message at Meta's category-and-country rate, plus your BSP's markup — confirm the current AU rate card before turning on the drip sequence over WhatsApp specifically.</div>
+      </div>
+      <div class="config-row">
+        <div class="k">When to switch it on</div>
+        <div class="v">If a meaningful share of leads reply "do you have WhatsApp?" to the Telegram bot, or once FB/IG ad volume in a market where WhatsApp is the norm justifies the setup time.</div>
+      </div>
+    </div>
+  </section>
+
+</main>

@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solterra Solar &amp; Roofing Australia — Solar that pays for itself, on a roof built to outlast it.</title>
+<meta name="description" content="CEC-accredited solar, battery &amp; roofing installed by one Australian team. Free roof health check with every solar quote — so you're never told the roof needs work after the panels go up.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Solterra Solar &amp; Roofing Australia">
+<meta property="og:description" content="Solar that pays for itself, on a roof built to outlast it. Free assessment, real quote within one business day.">
+<meta property="og:image" content="images/hero-solar-install.jpeg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect width='26' height='26' rx='5' fill='%2310151F'/%3E%3Cpath d='M2 15L13 6L24 15' stroke='%23F0A93D' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='6' y='15' width='5.2' height='5.2' fill='%23F0A93D' opacity='0.9'/%3E%3Crect x='12' y='15' width='5.2' height='5.2' fill='%23F0A93D'/%3E%3Crect x='18' y='15' width='4' height='5.2' fill='%23F0A93D' opacity='0.6'/%3E%3C/svg%3E">
+<script src="config.js"></script>
+<script src="config-helpers.js"></script>
+<script src="analytics.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dusk:#10151F;
+    --slate:#1B2233;
+    --slate-2:#242C40;
+    --gold:#F0A93D;
+    --gold-dim:#C6832A;
+    --clay:#C1642E;
+    --warm:#F3EFE6;
+    --muted:#8B93A6;
+    --line: rgba(243,239,230,0.10);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background-color:var(--dusk);
+    /* Ambient solar-panel-array texture: a coarse module grid (gold) with a finer
+       cell subdivision inside each module (warm, fainter) - echoes the panels in the
+       hero/service photography without competing with them. Shows through wherever a
+       section doesn't sit on its own photo or --slate card background. */
+    background-image:
+      repeating-linear-gradient(90deg, rgba(240,169,61,0.07) 0px, rgba(240,169,61,0.07) 1px, transparent 1px, transparent 162px),
+      repeating-linear-gradient(0deg, rgba(240,169,61,0.07) 0px, rgba(240,169,61,0.07) 1px, transparent 1px, transparent 96px),
+      repeating-linear-gradient(90deg, rgba(243,239,230,0.035) 0px, rgba(243,239,230,0.035) 1px, transparent 1px, transparent 27px),
+      repeating-linear-gradient(0deg, rgba(243,239,230,0.035) 0px, rgba(243,239,230,0.035) 1px, transparent 1px, transparent 24px);
+    color:var(--warm);
+    font-family:'Inter', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    line-height:1.08;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{ color:inherit; text-decoration:none; }
+  img{ max-width:100%; display:block; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 24px; }
+  section{ position:relative; }
+  ::selection{ background:var(--gold); color:var(--dusk); }
+  :focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+  /* ---------- COOKIE NOTICE ---------- */
+  .cookie-notice{ background:var(--slate-2); border-bottom:1px solid var(--line); }
+  .cookie-notice-inner{
+    max-width:1180px; margin:0 auto; padding:12px 24px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  }
+  .cookie-notice-inner p{ font-size:12.5px; color:var(--muted); margin:0; }
+  .cookie-notice-inner a{ color:var(--gold); }
+  .cookie-notice-dismiss{
+    background:none; border:1px solid var(--line); color:var(--warm); font-size:12px; font-weight:600;
+    padding:7px 16px; border-radius:100px; cursor:pointer; white-space:nowrap; flex-shrink:0; font-family:inherit;
+  }
+  .cookie-notice-dismiss:hover{ border-color:var(--gold); color:var(--gold); }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(16,21,31,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 24px; max-width:1180px; margin:0 auto; gap:20px;
+  }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:'Space Grotesk'; font-weight:700; font-size:20px; flex-shrink:0; }
+  .logo-mark{ width:26px; height:26px; flex-shrink:0; }
+  .nav-links{ display:flex; gap:32px; font-size:14px; color:var(--muted); margin-right:auto; margin-left:40px; }
+  .nav-links a:hover{ color:var(--warm); }
+  .nav-right{ display:flex; align-items:center; gap:18px; }
+  .nav-phone{ font-size:13.5px; color:var(--muted); display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .nav-phone:hover{ color:var(--gold); }
+  .nav-cta{
+    background:var(--gold); color:var(--dusk); font-weight:600; font-size:14px;
+    padding:10px 20px; border-radius:100px; white-space:nowrap;
+  }
+  .nav-cta:hover{ background:#ffbb55; }
+  .nav-mobile-toggle{ display:none; background:none; border:none; color:var(--warm); cursor:pointer; line-height:1; flex-shrink:0; padding:4px; }
+
+  .mobile-menu{
+    display:none; flex-direction:column;
+    background:rgba(16,21,31,0.98); border-bottom:1px solid var(--line);
+  }
+  .mobile-menu.open{ display:flex; }
+  .mobile-menu a{
+    padding:15px 24px; font-size:15px; color:var(--warm); border-top:1px solid var(--line);
+  }
+  .mobile-menu a:first-child{ border-top:none; }
+  .mobile-menu a.mobile-menu-cta{ color:var(--gold); font-weight:600; }
+
+  @media (max-width:860px){
+    .nav-links{ display:none; }
+    .nav-phone{ display:none; }
+    .nav-mobile-toggle{ display:block; }
+  }
+  @media (max-width:640px){
+    /* the sticky bottom bar already carries the quote CTA on small screens -
+       no need to repeat it in the nav, and it's what was crowding the hamburger off-screen */
+    .nav-cta{ display:none; }
+  }
+  @media (min-width:861px){
+    /* guards against the dropdown staying open if the window is resized/rotated
+       past the breakpoint without a reload - the toggle itself is already hidden here */
+    .mobile-menu{ display:none !important; }
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:88px 0 0;
+    overflow:hidden;
+    position:relative;
+    background-image:
+      linear-gradient(180deg, transparent 55%, var(--dusk) 100%),
+      linear-gradient(100deg, rgba(16,21,31,0.96) 0%, rgba(16,21,31,0.86) 38%, rgba(16,21,31,0.5) 68%, rgba(16,21,31,0.4) 100%),
+      url('images/hero-solar-install.jpeg');
+    background-size:cover;
+    background-position:center 35%;
+  }
+  .hero-inner{
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:center;
+    max-width:1180px; margin:0 auto; padding:64px 24px 140px;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12.5px; font-weight:600; color:var(--gold);
+    text-transform:uppercase; letter-spacing:0.08em;
+    border:1px solid rgba(240,169,61,0.35); background:rgba(240,169,61,0.1);
+    padding:7px 14px; border-radius:100px; margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); }
+  .hero h1{ font-size:clamp(34px, 5vw, 54px); text-shadow:0 2px 24px rgba(0,0,0,0.35); }
+  .hero h1 .accent{ color:var(--gold); }
+  .hero p.lead{
+    font-size:18px; color:#D7DAE3; max-width:480px; margin-top:22px;
+  }
+  .hero-stats{
+    display:flex; gap:36px; margin-top:36px; flex-wrap:wrap;
+  }
+  .hero-stat b{ font-family:'IBM Plex Mono'; font-size:24px; color:var(--warm); display:block; }
+  .hero-stat span{ font-size:12.5px; color:#B7BCCB; }
+
+  /* lead capture card */
+  .quote-card{
+    background:rgba(27,34,51,0.92); backdrop-filter:blur(6px); border:1px solid var(--line); border-radius:16px;
+    padding:32px; box-shadow:0 30px 60px -20px rgba(0,0,0,0.65);
+  }
+  .quote-card h3{ font-size:19px; margin-bottom:4px; }
+  .quote-card p{ font-size:13.5px; color:var(--muted); margin-bottom:22px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px; }
+  .field input, .field select{
+    width:100%; background:var(--dusk); border:1px solid var(--line); color:var(--warm);
+    padding:12px 14px; border-radius:8px; font-size:14.5px; font-family:inherit;
+  }
+  .field input::placeholder{ color:#5c637a; }
+  .field input:focus, .field select:focus{ border-color:var(--gold); }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .submit-btn{
+    width:100%; background:var(--gold); color:var(--dusk); font-weight:700; font-size:15px;
+    border:none; padding:14px; border-radius:8px; cursor:pointer; margin-top:6px;
+    transition:background 0.15s;
+  }
+  .submit-btn:hover{ background:#ffbb55; }
+  .quote-fine{ font-size:11.5px; color:var(--muted); margin-top:12px; text-align:center; }
+  .thanks{ display:none; text-align:center; padding:20px 0; }
+  .thanks.show{ display:block; }
+  .thanks .check{ font-size:34px; color:var(--gold); margin-bottom:10px; }
+
+  @media (max-width:900px){
+    .hero-inner{ grid-template-columns:1fr; padding:48px 24px 90px; }
+    .hero{ background-position:center 25%; }
+  }
+
+  /* ---------- TRUST BAR ---------- */
+  .trust-bar{
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    background:var(--slate);
+  }
+  .trust-inner{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    max-width:1180px; margin:0 auto; padding:34px 24px;
+  }
+  .trust-item{ text-align:center; border-right:1px solid var(--line); }
+  .trust-item:last-child{ border-right:none; }
+  .trust-item b{ font-family:'IBM Plex Mono'; font-size:26px; color:var(--gold); display:block; }
+  .trust-item span{ font-size:12.5px; color:var(--muted); }
+  @media (max-width:700px){
+    .trust-inner{ grid-template-columns:1fr 1fr; row-gap:24px; }
+    .trust-item:nth-child(2){ border-right:none; }
+  }
+
+  /* ---------- SECTION HEADS ---------- */
+  .section-pad{ padding:96px 0; }
+  .sec-head{ max-width:600px; margin-bottom:56px; }
+  .sec-eyebrow{ font-size:12.5px; font-weight:600; color:var(--gold); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px; }
+  .sec-head h2{ font-size:clamp(26px,3.4vw,36px); }
+  .sec-head p{ color:var(--muted); margin-top:14px; font-size:15.5px; }
+
+  /* ---------- SERVICES ---------- */
+  .services-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  .service-card{
+    background:var(--slate); border:1px solid var(--line); border-radius:14px;
+    padding:30px; transition:border-color 0.2s, transform 0.2s;
+  }
+  .service-card:hover{ border-color:rgba(240,169,61,0.4); transform:translateY(-3px); }
+  .service-card.featured{ border-color:var(--gold); background:linear-gradient(160deg, var(--slate-2), var(--slate)); }
+  .service-icon{ width:40px; height:40px; margin-bottom:20px; }
+  .service-card h3{ font-size:19px; margin-bottom:10px; }
+  .service-card p{ font-size:14px; color:var(--muted); margin-bottom:18px; }
+  .service-tag{
+    display:inline-block; font-size:11px; font-weight:600; color:var(--gold);
+    background:rgba(240,169,61,0.1); border:1px solid rgba(240,169,61,0.3);
+    padding:4px 10px; border-radius:100px; margin-bottom:14px;
+  }
+  .service-list{ list-style:none; font-size:13.5px; color:var(--warm); margin-bottom:16px; }
+  .service-list li{ padding:5px 0; display:flex; gap:9px; align-items:flex-start; }
+  .service-list li::before{ content:"—"; color:var(--gold); flex-shrink:0; }
+  .service-link{ font-size:13px; font-weight:600; color:var(--gold); display:inline-flex; align-items:center; gap:6px; }
+  .service-link:hover{ color:#ffbb55; }
+  @media (max-width:900px){ .services-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- PRICING ---------- */
+  .pricing-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  .pricing-card{
+    background:var(--slate); border:1px solid var(--line); border-radius:14px;
+    padding:30px; display:flex; flex-direction:column;
+  }
+  .pricing-card.featured{ border-color:var(--gold); background:linear-gradient(160deg, var(--slate-2), var(--slate)); }
+  .pricing-icon{ width:36px; height:36px; margin-bottom:16px; }
+  .pricing-card h3{ font-size:18px; margin-bottom:6px; }
+  .pricing-sub{ font-size:13px; color:var(--muted); margin-bottom:22px; }
+  .price-from{ display:flex; align-items:baseline; gap:9px; }
+  .price-from .from-label{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
+  .price-from .amount{ font-family:'IBM Plex Mono'; font-size:30px; font-weight:600; color:var(--gold); line-height:1; }
+  .price-from .amount .unit{ font-size:13px; font-weight:500; color:var(--muted); margin-left:2px; }
+  .price-table{ margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+  .price-row{
+    display:flex; justify-content:space-between; align-items:baseline; gap:14px;
+    padding:10px 0; border-top:1px dashed var(--line); font-size:13px;
+  }
+  .price-row:first-child{ border-top:none; padding-top:0; }
+  .price-row .item{ color:var(--warm); }
+  .price-row .item small{ display:block; color:var(--muted); font-size:11.5px; margin-top:2px; line-height:1.4; }
+  .price-row .amount{ font-family:'IBM Plex Mono'; color:var(--gold); font-weight:600; white-space:nowrap; text-align:right; font-size:13px; flex-shrink:0; }
+  .pricing-fine{ font-size:11.5px; color:var(--muted); margin-top:20px; padding-top:16px; border-top:1px solid var(--line); }
+  .pricing-note{
+    margin-top:40px; border:1px solid var(--line); background:var(--slate); border-radius:12px;
+    padding:22px 26px; display:flex; gap:16px; align-items:flex-start; font-size:13.5px; color:var(--muted);
+  }
+  .pricing-note svg{ flex-shrink:0; margin-top:2px; }
+  .pricing-note b{ color:var(--warm); }
+  @media (max-width:900px){ .pricing-grid{ grid-template-columns:1fr; } .pricing-note{ flex-direction:column; gap:10px; } }
+
+  /* ---------- ROOFING MATERIALS SHOWCASE ---------- */
+  .materials-photo-wrap{
+    border-radius:16px; overflow:hidden; border:1px solid var(--line); margin-bottom:36px;
+    box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .materials-photo-wrap img{ width:100%; height:auto; }
+  .materials-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .material-item{ border-top:2px solid var(--gold); padding-top:14px; }
+  .material-item b{ display:block; font-family:'Space Grotesk'; font-size:15.5px; margin-bottom:6px; }
+  .material-item p{ font-size:13.5px; color:var(--muted); }
+  @media (max-width:900px){ .materials-grid{ grid-template-columns:1fr 1fr; row-gap:24px; } }
+
+  /* ---------- PROCESS TIMELINE ---------- */
+  .process-wrap{ position:relative; }
+  .process-track{
+    display:grid; grid-template-columns:repeat(6,1fr); gap:0; position:relative;
+  }
+  .process-track::before{
+    content:""; position:absolute; top:19px; left:0; right:0; height:1px;
+    background:linear-gradient(90deg, var(--clay), var(--gold));
+    opacity:0.4;
+  }
+  .process-step{ padding-right:16px; position:relative; }
+  .process-num{
+    width:38px; height:38px; border-radius:50%; background:var(--dusk); border:1px solid var(--gold);
+    color:var(--gold); font-family:'IBM Plex Mono'; font-size:13px; font-weight:600;
+    display:flex; align-items:center; justify-content:center; margin-bottom:18px; position:relative; z-index:2;
+  }
+  .process-step h4{ font-family:'Space Grotesk'; font-size:15px; margin-bottom:8px; }
+  .process-step p{ font-size:12.8px; color:var(--muted); }
+  @media (max-width:900px){
+    .process-track{ grid-template-columns:1fr; gap:26px; }
+    .process-track::before{ display:none; }
+  }
+
+  /* ---------- FINANCING BANNER ---------- */
+  .finance-banner{
+    background-image:
+      linear-gradient(115deg, rgba(193,100,46,0.94) 0%, rgba(133,63,20,0.92) 100%),
+      url('images/battery-storage-home.jpeg');
+    background-size:cover; background-position:center;
+    border-radius:18px; padding:44px; display:flex; align-items:center; justify-content:space-between; gap:32px;
+    flex-wrap:wrap;
+  }
+  .finance-banner h3{ font-size:24px; color:var(--warm); max-width:480px; text-shadow:0 2px 16px rgba(0,0,0,0.3); }
+  .finance-banner p{ color:rgba(243,239,230,0.92); margin-top:10px; font-size:14.5px; max-width:480px; }
+  .finance-cta{
+    background:var(--dusk); color:var(--warm); font-weight:600; font-size:14.5px;
+    padding:14px 26px; border-radius:8px; white-space:nowrap; border:1px solid rgba(243,239,230,0.2);
+  }
+  .finance-cta:hover{ background:#000; }
+
+  /* ---------- TESTIMONIAL / SOCIAL PROOF ---------- */
+  .proof-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:center; }
+  .testimonial-card{
+    background:var(--slate); border:1px solid var(--line); border-radius:16px; padding:38px;
+  }
+  .stars{ color:var(--gold); font-size:16px; letter-spacing:2px; margin-bottom:18px; }
+  .testimonial-card blockquote{ font-family:'Space Grotesk'; font-size:20px; font-weight:500; line-height:1.4; }
+  .testimonial-card figcaption{ margin-top:20px; font-size:13.5px; color:var(--muted); }
+  .badges{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .badge{
+    border:1px solid var(--line); border-radius:10px; padding:18px; text-align:center;
+    font-size:12.5px; color:var(--muted); background:var(--slate);
+  }
+  .badge b{ display:block; font-family:'Space Grotesk'; color:var(--warm); font-size:14.5px; margin-bottom:4px; }
+  @media (max-width:900px){ .proof-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- FAQ ---------- */
+  .faq-list{ display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .faq-item{ background:var(--slate); }
+  .faq-item summary{
+    padding:20px 24px; cursor:pointer; font-family:'Space Grotesk'; font-size:15.5px; font-weight:600;
+    list-style:none; display:flex; justify-content:space-between; align-items:center; gap:16px;
+  }
+  .faq-item summary::-webkit-details-marker{ display:none; }
+  .faq-item summary::after{ content:"+"; color:var(--gold); font-size:22px; font-weight:400; flex-shrink:0; transition:transform 0.15s; line-height:1; }
+  .faq-item[open] summary::after{ transform:rotate(45deg); }
+  .faq-item .faq-answer{ padding:0 24px 20px; color:var(--muted); font-size:14px; line-height:1.65; max-width:70ch; }
+
+  /* ---------- FINAL CTA ---------- */
+  .final-cta{
+    background:var(--slate); border:1px solid var(--line); border-radius:20px;
+    padding:60px; text-align:center; position:relative; overflow:hidden;
+  }
+  .final-cta h2{ font-size:clamp(26px,3.6vw,38px); max-width:640px; margin:0 auto; }
+  .final-cta p{ color:var(--muted); margin-top:14px; font-size:15.5px; }
+  .final-cta .submit-btn{ max-width:280px; margin:26px auto 0; }
+  .urgency{
+    display:inline-flex; align-items:center; gap:8px; margin-top:22px;
+    font-size:12.5px; color:var(--gold); background:rgba(240,169,61,0.08);
+    border:1px solid rgba(240,169,61,0.3); padding:8px 16px; border-radius:100px;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{ border-top:1px solid var(--line); padding:56px 0 32px; }
+  .footer-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:36px; margin-bottom:44px; }
+  .footer-grid h5{ font-size:13px; color:var(--warm); margin-bottom:14px; }
+  .footer-grid ul{ list-style:none; }
+  .footer-grid li{ margin-bottom:9px; }
+  .footer-grid a{ font-size:13.5px; color:var(--muted); }
+  .footer-grid a:hover{ color:var(--gold); }
+  .footer-bottom{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+    border-top:1px solid var(--line); padding-top:24px; font-size:12px; color:var(--muted);
+  }
+  @media (max-width:800px){ .footer-grid{ grid-template-columns:1fr 1fr; } }
+
+  /* ---------- STICKY MOBILE CTA ---------- */
+  .mobile-cta-bar{
+    display:none; position:fixed; bottom:0; left:0; right:0; z-index:60;
+    background:rgba(16,21,31,0.96); backdrop-filter:blur(10px);
+    border-top:1px solid var(--line); padding:12px 16px;
+    gap:10px; align-items:center;
+  }
+  .mobile-cta-bar a.submit-btn{ flex:1; text-align:center; margin:0; padding:13px; }
+  .mobile-cta-call{
+    width:46px; height:46px; flex-shrink:0; border:1px solid var(--line); border-radius:8px;
+    display:flex; align-items:center; justify-content:center; font-size:19px;
+  }
+  @media (max-width:640px){
+    .mobile-cta-bar{ display:flex; }
+    body{ padding-bottom:74px; }
+  }
+
+  /* ---------- CHAT WIDGET ---------- */
+  #stc-chat-bubble{
+    position:fixed; bottom:20px; right:20px; width:58px; height:58px; border-radius:50%;
+    background:var(--gold); color:var(--dusk); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; z-index:70; box-shadow:0 10px 30px -8px rgba(0,0,0,0.6); font-size:24px;
+    border:none; transition:transform 0.15s;
+  }
+  #stc-chat-bubble:hover{ transform:scale(1.06); }
+  @media (max-width:640px){ #stc-chat-bubble{ bottom:90px; } }
+  #stc-chat-window{
+    position:fixed; bottom:90px; right:20px; width:328px; max-width:90vw; height:440px;
+    background:var(--slate); border:1px solid var(--line); border-radius:14px;
+    box-shadow:0 20px 60px -15px rgba(0,0,0,0.7); display:none; flex-direction:column;
+    overflow:hidden; z-index:70; font-family:'Inter', sans-serif;
+  }
+  #stc-chat-window.open{ display:flex; }
+  @media (max-width:640px){ #stc-chat-window{ bottom:158px; } }
+  #stc-chat-header{
+    background:var(--slate-2); color:var(--warm); padding:14px 16px; font-weight:600; font-size:14.5px;
+    border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between;
+  }
+  #stc-chat-header .status{ font-size:11px; color:var(--gold); font-weight:500; display:flex; align-items:center; gap:5px; }
+  #stc-chat-header .status .dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); }
+  #stc-chat-log{ flex:1; overflow-y:auto; padding:14px; font-size:13.5px; }
+  #stc-chat-log .msg{ margin-bottom:10px; padding:9px 12px; border-radius:10px; max-width:85%; line-height:1.45; }
+  #stc-chat-log .msg.bot{ background:var(--slate-2); color:var(--warm); }
+  #stc-chat-log .msg.me{ background:var(--gold); color:var(--dusk); margin-left:auto; }
+  #stc-chat-form{ display:flex; border-top:1px solid var(--line); }
+  #stc-chat-input{
+    flex:1; border:none; background:var(--dusk); color:var(--warm); padding:12px; font-size:13.5px;
+    font-family:inherit;
+  }
+  #stc-chat-input::placeholder{ color:#5c637a; }
+  #stc-chat-form button{ border:none; background:var(--gold); color:var(--dusk); padding:0 18px; cursor:pointer; font-weight:700; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cookie-notice" id="cookieNotice">
+  <div class="cookie-notice-inner">
+    <p>We use cookies and analytics (Google Analytics, Meta Pixel) to understand how visitors use this site and measure ad performance. <a href="privacy-policy.html">Learn more</a></p>
+    <button type="button" class="cookie-notice-dismiss" id="cookieNoticeDismiss">Got it</button>
+  </div>
+</div>
+
+<header>
+  <nav>
+    <div class="logo">
+      <svg class="logo-mark" viewBox="0 0 26 26" fill="none">
+        <path d="M2 15L13 6L24 15" stroke="#F0A93D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="6" y="15" width="5.2" height="5.2" fill="#F0A93D" opacity="0.9"/>
+        <rect x="12" y="15" width="5.2" height="5.2" fill="#F0A93D"/>
+        <rect x="18" y="15" width="4" height="5.2" fill="#F0A93D" opacity="0.6"/>
+      </svg>
+      <span data-cfg-text="business.name">Solterra</span>
+    </div>
+    <div class="nav-links">
+      <a href="#services">Services</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#materials">Roofing materials</a>
+      <a href="#process">How it works</a>
+      <a href="#financing">Financing</a>
+      <a href="#proof">Reviews</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <a href="tel:+611300123456" class="nav-phone" data-cfg-href="business.phoneHref">📞 <span data-cfg-text="business.phoneDisplay">1300 123 456</span></a>
+      <a href="#quote" class="nav-cta">Get my free quote</a>
+    </div>
+    <button class="nav-mobile-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
+      <svg id="navToggleIconOpen" width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 6H19M3 11H19M3 16H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg id="navToggleIconClose" width="22" height="22" viewBox="0 0 22 22" fill="none" style="display:none;"><path d="M4 4L18 18M18 4L4 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#services">Services</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#materials">Roofing materials</a>
+    <a href="#process">How it works</a>
+    <a href="#financing">Financing</a>
+    <a href="#proof">Reviews</a>
+    <a href="#faq">FAQ</a>
+    <a href="tel:+611300123456" data-cfg-href="business.phoneHref">📞 <span data-cfg-text="business.phoneDisplay">1300 123 456</span></a>
+    <a href="#quote" class="mobile-menu-cta">Get my free quote →</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> CEC Approved Solar Retailer · Australian owned</div>
+      <h1>Solar that pays for itself.<br>On a roof built to <span class="accent">outlast</span> it.</h1>
+      <p class="lead"><span data-cfg-text="business.name">Solterra</span> designs and installs solar, battery &amp; VPP systems backed by a full roof health check — so you're never told six months in that your roof needs replacing before your panels can go back on. One team, start to finish.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><b>18MW+</b><span>Solar capacity installed</span></div>
+        <div class="hero-stat"><b>CEC</b><span>Accredited installers, every job</span></div>
+        <div class="hero-stat"><b><span data-cfg-text="business.googleRating">4.9</span>★</b><span>Average Google rating</span></div>
+      </div>
+    </div>
+
+    <div class="quote-card" id="quote">
+      <div id="quoteForm">
+        <h3>Get your free solar assessment</h3>
+        <p>One real quote from the team doing the work — not three cold calls from an aggregator.</p>
+        <form id="leadForm" onsubmit="handleSubmit(event)">
+          <div class="field">
+            <label for="fname">Full name</label>
+            <input id="fname" type="text" placeholder="Jane Rivera" required>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="zip">Postcode</label>
+              <input id="zip" type="text" placeholder="3000" required>
+            </div>
+            <div class="field">
+              <label for="phone">Mobile</label>
+              <input id="phone" type="tel" placeholder="0412 345 678" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="interest">I'm interested in</label>
+            <select id="interest">
+              <option>Solar installation</option>
+              <option>Solar + battery / VPP</option>
+              <option>Roof health check before solar</option>
+              <option>Roof repair or replacement</option>
+              <option>Not sure yet — help me decide</option>
+            </select>
+          </div>
+          <button type="submit" class="submit-btn">Get my free quote →</button>
+          <p class="quote-fine">No spam. No obligation. A real person calls within one business day.</p>
+          <a href="#" id="bookTimeLink" class="service-link" style="display:none; justify-content:center; margin-top:14px;" target="_blank" rel="noopener">Or pick your own time →</a>
+        </form>
+      </div>
+      <div class="thanks" id="thanksMsg">
+        <div class="check">✓</div>
+        <h3>You're on the list.</h3>
+        <p style="color:var(--muted); font-size:14px; margin-top:8px;">A <span data-cfg-text="business.name">Solterra</span> advisor will call you within one business day to schedule your free solar &amp; roof assessment.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item"><b data-cfg-text="business.yearsInBusiness">18</b><span>Years in business</span></div>
+    <div class="trust-item"><b>SRES</b><span>Rebate applied on every quote</span></div>
+    <div class="trust-item"><b>CEC</b><span>Accredited installers</span></div>
+    <div class="trust-item"><b>HIA</b><span>Member for roofing works</span></div>
+  </div>
+</div>
+
+<section class="section-pad" id="services">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">What we do</div>
+      <h2>Solar, done properly — roof included</h2>
+      <p>Most solar retailers quote the panels and hope the roof holds up. We check the roof first, so what goes on top of it doesn't need touching again for decades.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card featured">
+        <svg class="service-icon" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="7" stroke="#F0A93D" stroke-width="2.2"/><path d="M20 3V8M20 32V37M37 20H32M8 20H3M31.5 8.5L28 12M12 28L8.5 31.5M31.5 31.5L28 28M12 12L8.5 8.5" stroke="#F0A93D" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span class="service-tag">Most popular</span>
+        <h3>Solar installation</h3>
+        <p>CEC-accredited system design and install, sized to your actual usage — not the biggest system we can fit.</p>
+        <ul class="service-list">
+          <li>SRES rebate applied upfront on your quote</li>
+          <li>Tier-1 panels &amp; inverters, 25-yr performance</li>
+          <li>Real-time production monitoring app</li>
+        </ul>
+        <a href="#pricing" class="service-link">See full pricing →</a>
+      </div>
+      <div class="service-card">
+        <svg class="service-icon" viewBox="0 0 40 40" fill="none"><path d="M22 4L8 22H18L16 36L32 16H21L22 4Z" stroke="#F0A93D" stroke-width="2.2" stroke-linejoin="round"/></svg>
+        <span class="service-tag">Battery &amp; VPP</span>
+        <h3>Battery storage &amp; VPP</h3>
+        <p>Store what you don't use, back up your home in an outage, and get paid to support the grid.</p>
+        <ul class="service-list">
+          <li>Federal battery rebate applied on eligible systems</li>
+          <li>VPP sign-up handled for you, reserve set to suit you</li>
+          <li>Stacks with state-based VPP incentives</li>
+        </ul>
+        <a href="#pricing" class="service-link">See pricing →</a>
+      </div>
+      <div class="service-card">
+        <svg class="service-icon" viewBox="0 0 40 40" fill="none"><path d="M4 22L20 8L36 22" stroke="#C1642E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20V34H31V20" stroke="#C1642E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="service-tag">Roofing</span>
+        <h3>Roof health check &amp; repair</h3>
+        <p>Included with every solar quote — so you're never told your roof needs replacing after the panels are already up.</p>
+        <ul class="service-list">
+          <li>Free roof condition report with every quote</li>
+          <li>Repairs or re-roofing before install, if needed</li>
+          <li>Same crew, same warranty — no second contractor</li>
+        </ul>
+        <a href="#materials" class="service-link">See roofing materials we install →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="pricing" style="background:var(--slate); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Pricing</div>
+      <h2>What it actually costs</h2>
+      <p>Real current Australian market ranges for every service we offer — not a lead-magnet lowball. Your written quote is fixed before any work starts.</p>
+    </div>
+    <div class="pricing-grid">
+
+      <div class="pricing-card featured">
+        <svg class="pricing-icon" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="7" stroke="#F0A93D" stroke-width="2.2"/><path d="M20 3V8M20 32V37M37 20H32M8 20H3M31.5 8.5L28 12M12 28L8.5 31.5M31.5 31.5L28 28M12 12L8.5 8.5" stroke="#F0A93D" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <h3>Solar installation</h3>
+        <p class="pricing-sub">Sized to your usage, not the biggest system we can fit.</p>
+        <div class="price-from">
+          <span class="from-label">From</span>
+          <span class="amount">$5,000</span>
+        </div>
+        <div class="price-table">
+          <div class="price-row">
+            <span class="item">6.6kW<small>Most 3–4 bedroom homes</small></span>
+            <span class="amount">$5,000–$6,000</span>
+          </div>
+          <div class="price-row">
+            <span class="item">10kW<small>Larger homes, EV charging</small></span>
+            <span class="amount">$7,500–$12,000</span>
+          </div>
+          <div class="price-row">
+            <span class="item">13kW<small>High usage, large roofs</small></span>
+            <span class="amount">$9,500–$16,000</span>
+          </div>
+        </div>
+        <p class="pricing-fine">After the federal STC rebate, applied upfront. Tier-1 panels &amp; inverter included.</p>
+      </div>
+
+      <div class="pricing-card">
+        <svg class="pricing-icon" viewBox="0 0 40 40" fill="none"><path d="M22 4L8 22H18L16 36L32 16H21L22 4Z" stroke="#F0A93D" stroke-width="2.2" stroke-linejoin="round"/></svg>
+        <h3>Battery storage &amp; VPP</h3>
+        <p class="pricing-sub">Back up your home, and get paid to support the grid.</p>
+        <div class="price-from">
+          <span class="from-label">From</span>
+          <span class="amount">$5,500</span>
+        </div>
+        <div class="price-table">
+          <div class="price-row">
+            <span class="item">10kWh<small>Typical household</small></span>
+            <span class="amount">$5,500–$9,500</span>
+          </div>
+          <div class="price-row">
+            <span class="item">13.5kWh<small>Powerwall-class, high usage / EV</small></span>
+            <span class="amount">$10,000–$13,000</span>
+          </div>
+          <div class="price-row">
+            <span class="item">Added to existing solar<small>Retrofit to a system we didn't install</small></span>
+            <span class="amount">Ask for quote</span>
+          </div>
+        </div>
+        <p class="pricing-fine">After the federal Cheaper Home Batteries rebate. Stacks with state VPP incentives where available.</p>
+      </div>
+
+      <div class="pricing-card">
+        <svg class="pricing-icon" viewBox="0 0 40 40" fill="none"><path d="M4 22L20 8L36 22" stroke="#C1642E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20V34H31V20" stroke="#C1642E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Roofing</h3>
+        <p class="pricing-sub">Included with every solar quote, or as a standalone job.</p>
+        <div class="price-from">
+          <span class="from-label">Health check</span>
+          <span class="amount">Free</span>
+        </div>
+        <div class="price-table">
+          <div class="price-row">
+            <span class="item">Minor repair<small>Leaks, cracked or slipped tiles</small></span>
+            <span class="amount">$250–$800</span>
+          </div>
+          <div class="price-row">
+            <span class="item">Restoration<small>Clean, reseal &amp; repaint</small></span>
+            <span class="amount">$25–$50/m²</span>
+          </div>
+          <div class="price-row">
+            <span class="item">Re-roof — Colorbond<small>Full replacement</small></span>
+            <span class="amount">$92–$205/m²</span>
+          </div>
+          <div class="price-row">
+            <span class="item">Re-roof — tile<small>Full replacement</small></span>
+            <span class="amount">$115–$255/m²</span>
+          </div>
+        </div>
+        <p class="pricing-fine">Repair and restoration pricing depends on access, pitch and condition — confirmed on-site at no cost.</p>
+      </div>
+
+    </div>
+
+    <div class="pricing-note">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.5" stroke="#8B93A6" stroke-width="1.4"/><path d="M10 9V14.5M10 6V6.5" stroke="#8B93A6" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <p><b>Why ranges, not a fixed price list:</b> roof pitch, access, and exact system size all move the final number, so we don't pretend otherwise with a made-up flat rate. These are current 2026 Australian market ranges with the relevant federal rebate already factored in — your actual price is confirmed in writing after a free on-site assessment, and it doesn't move once you've signed.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="materials" style="background:var(--slate); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Roofing materials</div>
+      <h2>Every roof type, one crew</h2>
+      <p>Whatever's already up there — or whatever you want to switch to — we work with all of it, and we'll tell you honestly which makes sense for your budget and your roof's pitch.</p>
+    </div>
+    <div class="materials-photo-wrap">
+      <img src="images/roofing-materials.jpeg" alt="Four roofing material samples side by side: dark natural slate, standing-seam Colorbond metal, concrete and terracotta profile tile, and architectural asphalt shingle" loading="lazy">
+    </div>
+    <div class="materials-grid">
+      <div class="material-item">
+        <b>Natural slate</b>
+        <p>The longest-lasting option on the market — often 75+ years — at a premium material and install cost.</p>
+      </div>
+      <div class="material-item">
+        <b>Colorbond &amp; metal</b>
+        <p>Light, low-maintenance, and the easiest surface to mount solar racking cleanly on.</p>
+      </div>
+      <div class="material-item">
+        <b>Concrete &amp; terracotta tile</b>
+        <p>The most common roof across Australian suburbs — durable, and available in profiles to match what's already on the street.</p>
+      </div>
+      <div class="material-item">
+        <b>Architectural shingle</b>
+        <p>Lower upfront cost with a strong look, best suited to steeper-pitch roofs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="process">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">The process</div>
+      <h2>From first call to flipping the switch</h2>
+      <p>The same six-stage process for every job — roof health checked before a single panel goes up.</p>
+    </div>
+    <div class="process-wrap">
+      <div class="process-track">
+        <div class="process-step"><div class="process-num">1</div><h4>Free assessment</h4><p>Roof condition, shading &amp; usage review, no cost.</p></div>
+        <div class="process-step"><div class="process-num">2</div><h4>Custom proposal</h4><p>System sized to your bill, roof work scoped if needed.</p></div>
+        <div class="process-step"><div class="process-num">3</div><h4>Approvals &amp; rebates</h4><p>Council/DNSP approvals filed, SRES &amp; battery rebates applied.</p></div>
+        <div class="process-step"><div class="process-num">4</div><h4>Installation</h4><p>Roof work first if required, then solar — one crew.</p></div>
+        <div class="process-step"><div class="process-num">5</div><h4>Inspection &amp; connection</h4><p>Compliance certificate, then retailer grid connection.</p></div>
+        <div class="process-step"><div class="process-num">6</div><h4>Monitoring &amp; VPP</h4><p>App handover, VPP enrolment, ongoing warranty support.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="financing">
+  <div class="wrap">
+    <div class="finance-banner">
+      <div>
+        <h3>Most homeowners pay less per month than their old power bill.</h3>
+        <p>The SRES solar rebate and the federal battery rebate are both applied upfront as a discount on your quote — no waiting for tax time — and they can stack with your state's VPP incentive. Your advisor will show exact numbers for your address.</p>
+      </div>
+      <a href="#quote" class="finance-cta">See my payment estimate →</a>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="proof">
+  <div class="wrap">
+    <div class="proof-grid">
+      <figure class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <blockquote>"They flagged our roof needed work before the panels went up — the solar company I got a quote from first never even looked at the roof. Glad I didn't find out the hard way."</blockquote>
+        <figcaption>— Sarah T., homeowner in Melbourne since 2023</figcaption>
+      </figure>
+      <div class="badges">
+        <div class="badge"><b>CEC approved retailer</b>Clean Energy Council standard</div>
+        <div class="badge"><b>Licensed builder</b>State building &amp; electrical licence</div>
+        <div class="badge"><b>25-yr panel warranty</b>Plus 10-yr workmanship</div>
+        <div class="badge"><b>HIA member</b><span data-cfg-text="business.yearsInBusiness">18</span> years, Housing Industry Assoc.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="faq" style="background:var(--slate); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">FAQ</div>
+      <h2>Questions we get asked a lot</h2>
+      <p>Straight answers, not sales copy. If it's not here, ask the chat widget or call us.</p>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>Do I need council approval for solar or a new roof?</summary>
+        <div class="faq-answer">Most standard residential solar installs don't need council approval — your energy retailer/DNSP still needs to approve the grid connection, which we handle as part of the process. Re-roofing sometimes needs a permit depending on your council and whether the roofline or height changes; we check this during your free assessment, not after you've signed anything.</div>
+      </details>
+      <details class="faq-item">
+        <summary>What happens if my roof needs repairs before solar goes on?</summary>
+        <div class="faq-answer">We flag it in your free roof health check, quote the repair or restoration alongside the solar quote, and do both with the same crew under the same warranty — so you're never told six months in that the roof needs work after the panels are already up.</div>
+      </details>
+      <details class="faq-item">
+        <summary>How long does installation actually take?</summary>
+        <div class="faq-answer">A standard solar-only install is usually done in a day. Add roof work first and it depends on the job — a repair might add a day, a full re-roof more. Your written quote includes a real timeframe, not a rough guess.</div>
+      </details>
+      <details class="faq-item">
+        <summary>What if it rains on the scheduled day?</summary>
+        <div class="faq-answer">We don't install roofing or solar in unsafe weather. If it rains, we reschedule to the next available slot and let you know as early as possible — you won't be left chasing us for an update.</div>
+      </details>
+      <details class="faq-item">
+        <summary>What warranty comes with the work?</summary>
+        <div class="faq-answer">25-year performance warranty on panels, plus 10-year workmanship warranty on the install. Roofing work carries its own warranty depending on material and scope, confirmed in writing on your quote.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Can I finance the cost?</summary>
+        <div class="faq-answer">Yes — most customers pay less per month than their old power bill using a payment plan through Brighte or Plenti, on top of the SRES rebate already applied upfront to your quote.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Which suburbs do you service?</summary>
+        <div class="faq-answer">Tell us your postcode in the quote form or chat and we'll confirm straight away whether you're in our service area.</div>
+      </details>
+      <details class="faq-item">
+        <summary>My roof was damaged in a storm — can you help with the insurance claim?</summary>
+        <div class="faq-answer">Yes. Storm and hail damage jobs get priority scheduling, and we can provide the condition report and photos your insurer will ask for as part of your claim.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad">
+  <div class="wrap">
+    <div class="final-cta">
+      <h2>Ready to see what solar actually costs on your roof?</h2>
+      <p>One visit gets you a real quote for solar, battery, or a roof health check first — no pressure, no games.</p>
+      <a href="#quote" class="submit-btn" style="display:block; text-decoration:none;">Get my free quote →</a>
+      <div class="urgency"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--gold);display:inline-block;"></span> SRES rebate values step down every 1 January — lock in this year's rate now</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="logo" style="margin-bottom:14px;">
+          <svg class="logo-mark" viewBox="0 0 26 26" fill="none">
+            <path d="M2 15L13 6L24 15" stroke="#F0A93D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="6" y="15" width="5.2" height="5.2" fill="#F0A93D" opacity="0.9"/>
+            <rect x="12" y="15" width="5.2" height="5.2" fill="#F0A93D"/>
+            <rect x="18" y="15" width="4" height="5.2" fill="#F0A93D" opacity="0.6"/>
+          </svg>
+          <span data-cfg-text="business.name">Solterra</span>
+        </div>
+        <p style="font-size:13px; color:var(--muted); max-width:260px;">Roofing and solar, installed by one team, backed by one warranty.</p>
+      </div>
+      <div>
+        <h5>Services</h5>
+        <ul><li><a href="#services">Solar installation</a></li><li><a href="#services">Battery &amp; VPP</a></li><li><a href="#materials">Roofing materials</a></li><li><a href="#services">Roof repair</a></li></ul>
+      </div>
+      <div>
+        <h5>Company</h5>
+        <ul><li><a href="#pricing">Pricing</a></li><li><a href="#process">How it works</a></li><li><a href="#financing">Financing</a></li><li><a href="#proof">Reviews</a></li><li><a href="#faq">FAQ</a></li><li><a href="privacy-policy.html">Privacy Policy</a></li><li><a href="terms-of-service.html">Terms of Service</a></li></ul>
+      </div>
+      <div>
+        <h5>Contact</h5>
+        <ul><li><a href="tel:+611300123456" data-cfg-href="business.phoneHref" data-cfg-text="business.phoneDisplay">1300 123 456</a></li><li><a href="mailto:hello@solterra.com.au" data-cfg-href="business.emailHref" data-cfg-text="business.emailDisplay">hello@solterra.com.au</a></li><li><a href="#quote">Request a callback</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom" style="flex-direction:column; align-items:flex-start; gap:8px;">
+      <span>© 2026 <span data-cfg-text="business.name">Solterra</span> Roofing &amp; Solar Pty Ltd. ABN <span data-cfg-text="business.abn">12 345 678 901</span>. Builder's Licence #<span data-cfg-text="business.builderLicence">XXXXXX</span>. Electrical Contractor Licence #<span data-cfg-text="business.electricalLicence">XXXXXX</span>. CEC Approved Solar Retailer.</span>
+      <span>Prices include GST. Cooling-off rights apply under the Australian Consumer Law — you may cancel unsolicited agreements within 10 business days. SRES and battery rebate estimates are indicative, depend on your zone rating, system size and current certificate pricing, and are subject to change by the Clean Energy Regulator. Pricing shown reflects current Australian market ranges as a guide only — your fixed price is confirmed in writing after a free on-site assessment.</span>
+      <span id="sampleSiteDisclaimer">Sample marketing site — replace all licence numbers, ABN and claims with your own verified details before publishing.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Sticky mobile CTA — visible only under 640px, so the form is never more than a tap away -->
+<div class="mobile-cta-bar">
+  <a href="tel:+611300123456" class="mobile-cta-call" data-cfg-href="business.phoneHref" aria-label="Call now">📞</a>
+  <a href="#quote" class="submit-btn" style="text-decoration:none;">Get my free quote →</a>
+</div>
+
+<!-- AI chat widget — posts into the same n8n intake workflow as Telegram/FB/IG (Workflows/01-ai-agent-inbound-intake.json, "Website Inbound" webhook) -->
+<button id="stc-chat-bubble" aria-label="Open chat">💬</button>
+<div id="stc-chat-window">
+  <div id="stc-chat-header">
+    <span>Chat with <span data-cfg-text="business.name">Solterra</span></span>
+    <span class="status"><span class="dot"></span> Usually replies in minutes</span>
+  </div>
+  <div id="stc-chat-log"></div>
+  <form id="stc-chat-form">
+    <input id="stc-chat-input" type="text" placeholder="Type a message..." autocomplete="off" required>
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+  // ---- Hydrate every [data-cfg-text]/[data-cfg-href] element from config.js, plus
+  // <title>/meta description - this is what makes the template a one-file reskin. ----
+  (function hydrateFromConfig(){
+    var cfg = window.SITE_CONFIG;
+    if (!cfg) return;
+    function getPath(obj, path){
+      return path.split('.').reduce(function(o, k){ return (o && o[k] !== undefined) ? o[k] : undefined; }, obj);
+    }
+    document.querySelectorAll('[data-cfg-text]').forEach(function(el){
+      var v = getPath(cfg, el.getAttribute('data-cfg-text'));
+      if (v !== undefined) el.textContent = v;
+    });
+    document.querySelectorAll('[data-cfg-href]').forEach(function(el){
+      var v = getPath(cfg, el.getAttribute('data-cfg-href'));
+      if (v !== undefined) el.setAttribute('href', v);
+    });
+    if (cfg.seo){
+      if (cfg.seo.title) document.title = cfg.seo.title;
+      var metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc && cfg.seo.description) metaDesc.setAttribute('content', cfg.seo.description);
+      var ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle && cfg.business && cfg.business.name) ogTitle.setAttribute('content', cfg.business.name + ' Solar & Roofing Australia');
+    }
+  })();
+
+  // ---- Structured data (JSON-LD) ----
+  // LocalBusiness comes from config.js directly. FAQPage is read straight off the
+  // rendered .faq-item elements below, rather than duplicated here by hand, so the
+  // schema can never drift out of sync with what's actually visible on the page -
+  // Google penalises structured data that doesn't match on-page content.
+  (function injectStructuredData(){
+    var cfg = window.SITE_CONFIG;
+    if (!cfg || !cfg.business) return;
+    var b = cfg.business;
+    var addr = b.address || {};
+
+    var localBusiness = {
+      "@context": "https://schema.org",
+      "@type": "RoofingContractor",
+      "name": b.name,
+      "telephone": (b.phoneHref || '').replace('tel:', ''),
+      "email": b.emailDisplay,
+      "url": location.href,
+      "priceRange": "$$",
+      "areaServed": "AU",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": addr.streetAddress,
+        "addressLocality": addr.suburb,
+        "addressRegion": addr.state,
+        "postalCode": addr.postcode,
+        "addressCountry": "AU"
+      }
+    };
+    if (b.googleRating){
+      localBusiness.aggregateRating = {
+        "@type": "AggregateRating",
+        "ratingValue": b.googleRating,
+        "reviewCount": b.googleReviewCount || "1",
+        "bestRating": "5"
+      };
+    }
+
+    var faqEntities = [];
+    document.querySelectorAll('.faq-item').forEach(function(item){
+      var q = item.querySelector('summary');
+      var a = item.querySelector('.faq-answer');
+      if (!q || !a) return;
+      faqEntities.push({
+        "@type": "Question",
+        "name": q.textContent.trim(),
+        "acceptedAnswer": { "@type": "Answer", "text": a.textContent.trim() }
+      });
+    });
+
+    var schemas = [localBusiness];
+    if (faqEntities.length){
+      schemas.push({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": faqEntities
+      });
+    }
+
+    schemas.forEach(function(schema){
+      var script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(schema);
+      document.head.appendChild(script);
+    });
+  })();
+
+  // getWebhookUrl/getCalendarUrl/getAiProvider/getReadinessChecks all come from
+  // config-helpers.js now, shared with admin.html so the two pages can't drift apart.
+  refreshSampleDisclaimer();
+
+  // Reveal the "book your own time" link only once a real (non-placeholder) calendar URL
+  // is configured, so an unconfigured deployment never shows a dead link.
+  function refreshBookTimeLink(){
+    var link = document.getElementById('bookTimeLink');
+    if (!link) return;
+    var url = getCalendarUrl();
+    if (url && url.indexOf('YOUR-SCHEDULE-ID') === -1){
+      link.href = url;
+      link.style.display = 'inline-flex';
+    } else {
+      link.style.display = 'none';
+    }
+  }
+  refreshBookTimeLink();
+
+  // Cookie/analytics notice - dismiss once, remember it. Disclosure only, not a
+  // consent gate: analytics.js already loads independently of this banner (see the
+  // scope note at the top of that file for why, and when that wouldn't be enough).
+  (function(){
+    var notice = document.getElementById('cookieNotice');
+    var dismissBtn = document.getElementById('cookieNoticeDismiss');
+    if (!notice || !dismissBtn) return;
+    if (localStorage.getItem('cookie_notice_dismissed')){
+      notice.style.display = 'none';
+      return;
+    }
+    dismissBtn.addEventListener('click', function(){
+      localStorage.setItem('cookie_notice_dismissed', '1');
+      notice.style.display = 'none';
+    });
+  })();
+
+  // Conversion tracking for the two lower-friction paths: any "book a time" click, and
+  // any phone number tap (delegated so it covers the nav, mobile menu, footer and sticky
+  // bar phone links in one listener, including any added later).
+  document.addEventListener('click', function(e){
+    if (!window.trackEvent) return;
+    var bookLink = e.target.closest && e.target.closest('#bookTimeLink');
+    if (bookLink){ trackEvent('calendar_click'); return; }
+    var telLink = e.target.closest && e.target.closest('a[href^="tel:"]');
+    if (telLink){ trackEvent('phone_click'); }
+  });
+
+  function getSessionId(){
+    var id = localStorage.getItem('stc_session_id');
+    if (!id){
+      id = 'web_' + Math.random().toString(36).slice(2) + Date.now();
+      localStorage.setItem('stc_session_id', id);
+    }
+    return id;
+  }
+
+  // Quote form: sends the structured lead straight into the AI agent's intake pipeline.
+  // Falls back to showing the thank-you message locally even if the webhook isn't live yet,
+  // so this page still demos correctly before the backend is wired up.
+  function handleSubmit(e){
+    e.preventDefault();
+    var name = document.getElementById('fname').value;
+    var zip = document.getElementById('zip').value;
+    var phone = document.getElementById('phone').value;
+    var interest = document.getElementById('interest').value;
+
+    var payload = {
+      session_id: getSessionId(),
+      name: name,
+      phone: phone,
+      postcode: zip,
+      interest: interest,
+      ai_provider: getAiProvider(),
+      text: "New quote request: " + interest + ". Postcode " + zip + ", mobile " + phone + "."
+    };
+
+    fetch(getWebhookUrl(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(function(){ /* webhook not configured yet - still show the thank-you below */ });
+
+    if (window.trackEvent) trackEvent('quote_form_submit', { interest: interest });
+
+    document.getElementById('quoteForm').style.display = 'none';
+    document.getElementById('thanksMsg').classList.add('show');
+  }
+
+  // Mobile hamburger menu
+  (function(){
+    var toggle = document.getElementById('navToggle');
+    var menu = document.getElementById('mobileMenu');
+    var iconOpen = document.getElementById('navToggleIconOpen');
+    var iconClose = document.getElementById('navToggleIconClose');
+    function setOpen(isOpen){
+      menu.classList.toggle('open', isOpen);
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      iconOpen.style.display = isOpen ? 'none' : 'block';
+      iconClose.style.display = isOpen ? 'block' : 'none';
+    }
+    toggle.addEventListener('click', function(){ setOpen(!menu.classList.contains('open')); });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ setOpen(false); });
+    });
+  })();
+
+  // Floating chat widget - same AI agent, open-ended conversation instead of a fixed form.
+  (function(){
+    var bubble = document.getElementById('stc-chat-bubble');
+    var win = document.getElementById('stc-chat-window');
+    var log = document.getElementById('stc-chat-log');
+    var form = document.getElementById('stc-chat-form');
+    var input = document.getElementById('stc-chat-input');
+    var engagementTracked = false;
+
+    bubble.addEventListener('click', function(){
+      win.classList.toggle('open');
+      if (win.classList.contains('open') && log.children.length === 0){
+        addMessage('bot', "G'day! Solar, battery, or a roof repair — what can we help with?");
+      }
+    });
+
+    function addMessage(who, text){
+      var el = document.createElement('div');
+      el.className = 'msg ' + who;
+      el.textContent = text;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var text = input.value.trim();
+      if (!text) return;
+      addMessage('me', text);
+      input.value = '';
+
+      if (!engagementTracked && window.trackEvent){
+        trackEvent('chat_engaged');
+        engagementTracked = true;
+      }
+
+      fetch(getWebhookUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: getSessionId(), text: text, name: '', ai_provider: getAiProvider() })
+      })
+        .then(function(r){ return r.json(); })
+        .then(function(data){ addMessage('bot', data.reply || "Thanks - we'll be in touch shortly."); })
+        .catch(function(){ addMessage('bot', "Thanks - we've got your message and will be in touch shortly."); });
+    });
+  })();
+
+</script>
+
+</body>
+</html>

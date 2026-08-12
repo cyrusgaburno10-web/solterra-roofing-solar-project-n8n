@@ -1,0 +1,326 @@
+<title>SOP — Lead Automation Operations Manual</title>
+
+<style>
+  :root {
+    --paper: #eeede7; --paper-raised: #f7f6f2; --paper-stamp: #e4e2d9;
+    --ink: #201e1a; --ink-dim: #5c584e; --line: #c7c2b4;
+    --accent-hot: #c94f19; --accent-solar: #145e76; --accent-slate: #48585b; --success: #2f7a4a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #17191a; --paper-raised: #1e2123; --paper-stamp: #24272a;
+      --ink: #ede9df; --ink-dim: #a29d90; --line: #383b3a;
+      --accent-hot: #ff7a3b; --accent-solar: #56b8d6; --accent-slate: #93a3a6; --success: #57b87b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #17191a; --paper-raised: #1e2123; --paper-stamp: #24272a;
+    --ink: #ede9df; --ink-dim: #a29d90; --line: #383b3a;
+    --accent-hot: #ff7a3b; --accent-solar: #56b8d6; --accent-slate: #93a3a6; --success: #57b87b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+  main { max-width: 1040px; margin: 0 auto; padding: 56px 24px 100px; }
+
+  header.docket {
+    border: 1.5px solid var(--ink); padding: 22px 26px; background: var(--paper-raised);
+    display: grid; grid-template-columns: 1fr auto; gap: 10px 24px;
+  }
+  header.docket .doc-title {
+    grid-column: 1/-1; font-family: ui-monospace, monospace; font-size: 1.6rem; font-weight: 700;
+    letter-spacing: .02em; text-transform: uppercase; text-wrap: balance; margin: 0 0 2px;
+  }
+  header.docket .doc-sub { grid-column: 1/-1; color: var(--ink-dim); font-size: .98rem; max-width: 70ch; }
+  header.docket .meta-block {
+    font-family: ui-monospace, monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-dim); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px;
+    display: flex; gap: 28px; flex-wrap: wrap;
+  }
+  header.docket .meta-block strong { color: var(--ink); display: block; font-size: .9rem; letter-spacing: 0; margin-top: 2px; }
+
+  nav.toc { margin-top: 28px; border: 1px solid var(--line); background: var(--paper-raised); padding: 16px 20px; }
+  nav.toc .cat { font-family: ui-monospace, monospace; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-solar); margin-bottom: 10px; }
+  nav.toc ol { margin: 0; padding-left: 0; list-style: none; columns: 2; column-gap: 24px; }
+  nav.toc li { break-inside: avoid; margin-bottom: 6px; font-size: .92rem; }
+  nav.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--line); }
+  nav.toc a:hover { color: var(--accent-solar); }
+
+  section { margin-top: 52px; }
+  h2 {
+    font-family: ui-monospace, monospace; font-size: .82rem; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--accent-solar); border-bottom: 1px solid var(--line); padding-bottom: 10px; margin: 0 0 20px;
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  h2 .stepnum { font-size: 1.4rem; color: var(--ink); font-weight: 700; letter-spacing: 0; }
+  h3 { font-family: ui-monospace, monospace; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink); margin: 26px 0 10px; }
+
+  p.lede { max-width: 72ch; font-size: 1.02rem; }
+  p.note { max-width: 74ch; font-size: .9rem; color: var(--ink-dim); }
+
+  .verdict {
+    border: 1.5px solid var(--accent-hot); background: color-mix(in srgb, var(--accent-hot) 7%, var(--paper-raised));
+    padding: 16px 20px; margin: 18px 0 22px; display: flex; gap: 14px; align-items: baseline;
+  }
+  .verdict .stamp {
+    font-family: ui-monospace, monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--accent-hot); border: 1px solid var(--accent-hot); padding: 3px 8px; border-radius: 3px; white-space: nowrap;
+  }
+  .verdict p { margin: 0; font-size: .98rem; }
+
+  .callout { border-left: 3px solid var(--accent-solar); background: color-mix(in srgb, var(--accent-solar) 7%, var(--paper-raised)); padding: 12px 16px; margin: 16px 0; font-size: .92rem; }
+  .callout.warn { border-left-color: var(--accent-hot); background: color-mix(in srgb, var(--accent-hot) 7%, var(--paper-raised)); }
+  .callout b { color: var(--ink); }
+
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 14px 0; }
+  thead th {
+    text-align: left; font-family: ui-monospace, monospace; font-size: .66rem; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--ink-dim); border-bottom: 1px solid var(--ink); padding: 0 12px 8px 0;
+  }
+  tbody td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  .table-scroll { overflow-x: auto; }
+  td.mono, th.mono { font-family: ui-monospace, monospace; font-size: .82rem; }
+  code { font-family: ui-monospace, monospace; font-size: .85em; background: var(--paper-stamp); padding: 1px 5px; border-radius: 3px; }
+
+  ul.checklist { list-style: none; padding-left: 0; margin: 14px 0; }
+  ul.checklist li { position: relative; padding: 7px 0 7px 30px; font-size: .94rem; border-bottom: 1px dashed var(--line); }
+  ul.checklist li:last-child { border-bottom: none; }
+  ul.checklist li::before { content: "☐"; position: absolute; left: 0; top: 7px; color: var(--accent-solar); font-size: 1.05rem; }
+
+  ol.steps { padding-left: 0; list-style: none; counter-reset: step; margin: 16px 0; }
+  ol.steps > li { counter-increment: step; position: relative; padding: 8px 0 8px 34px; font-size: .96rem; border-bottom: 1px dashed var(--line); }
+  ol.steps > li:last-child { border-bottom: none; }
+  ol.steps > li::before {
+    content: counter(step); position: absolute; left: 0; top: 8px; font-family: ui-monospace, monospace; font-size: .72rem;
+    color: var(--accent-solar); border: 1px solid var(--accent-solar); border-radius: 50%; width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .symptom-card { border: 1px solid var(--line); background: var(--paper-raised); padding: 18px 20px; margin: 14px 0; }
+  .symptom-card .symptom { font-family: ui-monospace, monospace; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--accent-hot); margin-bottom: 8px; }
+  .symptom-card .cause { font-size: .9rem; color: var(--ink-dim); margin-bottom: 6px; }
+  .symptom-card .fix { font-size: .94rem; }
+  .symptom-card .fix b { color: var(--accent-solar); }
+
+  footer { margin-top: 70px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--ink-dim); font-size: .82rem; }
+
+  @media (max-width: 640px) { header.docket { grid-template-columns: 1fr; } nav.toc ol { columns: 1; } }
+</style>
+
+<main>
+
+  <header class="docket">
+    <div class="doc-title">Lead Automation — Operations Manual (SOP)</div>
+    <div class="doc-sub">How to configure, run, check, and fix the n8n + HubSpot + AI + website lead system day to day — written for whoever's on shift, not just whoever built it.</div>
+    <div class="meta-block">
+      <div>Companion to<strong>Build &amp; Deploy Guide, Workflow Diagram</strong></div>
+      <div>Covers<strong>n8n · HubSpot · Website · 3 AI providers</strong></div>
+      <div>Rev<strong>01</strong></div>
+      <div>Prepared<strong>12 Aug 2026</strong></div>
+    </div>
+  </header>
+
+  <div class="verdict">
+    <span class="stamp">Status: built, not yet live-proven</span>
+    <p>Every piece has been built and tested in isolation — the n8n logic against simulated inputs, the website in a real browser. Nothing has processed a real live lead end-to-end yet, and the n8n workflows have no automatic retry if an API call fails mid-run. See <a href="#s9">§9 — Known Limitations</a> before treating this as fully production-hardened.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="cat">Contents</div>
+    <ol>
+      <li><a href="#s1">System overview</a></li>
+      <li><a href="#s2">Master configuration index</a></li>
+      <li><a href="#s3">Daily checklist</a></li>
+      <li><a href="#s4">Weekly / monthly checklist</a></li>
+      <li><a href="#s5">Troubleshooting</a></li>
+      <li><a href="#s6">Change procedures</a></li>
+      <li><a href="#s7">Incident response</a></li>
+      <li><a href="#s8">Roles &amp; responsibilities</a></li>
+      <li><a href="#s9">Known limitations</a></li>
+      <li><a href="#s10">Document history</a></li>
+    </ol>
+  </nav>
+
+  <section id="s1">
+    <h2><span class="stepnum">01</span>System overview</h2>
+    <p class="lede">Facebook, Instagram and the website all feed one AI agent (workflow 1), which qualifies the lead and writes it into HubSpot. From there: booking confirmations and reminders (workflow 2), a nurture drip for cold leads (workflow 3), and review requests or recovery follow-ups once a job is won or lost (workflow 4). Telegram and WhatsApp nodes exist in workflow 1 but are currently unregistered — safe to leave idle until those channels are turned on.</p>
+    <p class="note">Full visual diagram: <code>Documentation/workflow-diagram.html</code>. One-time setup steps: <code>Documentation/build-guide.html</code>. This document is the ongoing operations manual — what to do after setup, not instead of it.</p>
+  </section>
+
+  <section id="s2">
+    <h2><span class="stepnum">02</span>Master configuration index</h2>
+    <p class="lede">Every setting in this system lives in one of four places. This table is the map — use it instead of hunting.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Setting</th><th>Lives in</th><th>Change it via</th></tr></thead>
+        <tbody>
+          <tr><td>Business name, phone, email, ABN, licences, rating</td><td class="mono">website/config.js</td><td>Edit the file, redeploy</td></tr>
+          <tr><td>n8n website webhook URL</td><td class="mono">config.js (default) + browser localStorage (override)</td><td>Open <code>admin.html</code> directly, enter the password (see <code>settings-access-guide.md</code>)</td></tr>
+          <tr><td>Google Calendar booking link</td><td class="mono">config.js + localStorage override</td><td>Open <code>admin.html</code> directly, enter the password (see <code>settings-access-guide.md</code>)</td></tr>
+          <tr><td>AI provider preference (Claude/Gemini/Grok)</td><td class="mono">config.js + localStorage override</td><td>Open <code>admin.html</code> directly, enter the password (see <code>settings-access-guide.md</code>)</td></tr>
+          <tr><td>GA4 / Meta Pixel IDs</td><td class="mono">config.js</td><td>Edit the file, redeploy</td></tr>
+          <tr><td>HubSpot token, pipeline/stage IDs</td><td class="mono">n8n .env</td><td>n8n environment variables</td></tr>
+          <tr><td>AI API keys (Anthropic/Gemini/Grok) + default provider</td><td class="mono">n8n .env</td><td>n8n environment variables</td></tr>
+          <tr><td>Telegram bot token, ops alert chat ID</td><td class="mono">n8n .env</td><td>n8n environment variables</td></tr>
+          <tr><td>Meta (FB/IG) tokens</td><td class="mono">n8n .env</td><td>n8n environment variables</td></tr>
+          <tr><td>WhatsApp tokens (optional)</td><td class="mono">n8n .env</td><td>n8n environment variables</td></tr>
+          <tr><td>Twilio SID/token/number</td><td class="mono">n8n .env + n8n Credential</td><td>n8n environment variables + Credentials screen</td></tr>
+          <tr><td>Qualification rules, scoring logic, tone</td><td class="mono">n8n workflow 1 → "Build AI Request" node</td><td>Edit the node's code directly in n8n</td></tr>
+          <tr><td>Nurture drip copy (Day 1/3/7/14/monthly)</td><td class="mono">n8n workflow 3 → "Pick Message Content" node</td><td>Edit the node's code directly in n8n</td></tr>
+          <tr><td>Recovery follow-up copy</td><td class="mono">n8n workflow 4 → "Pick Recovery Message" node</td><td>Edit the node's code directly in n8n</td></tr>
+          <tr><td>HubSpot custom properties, pipeline stages</td><td class="mono">HubSpot itself</td><td>HubSpot Settings → Properties / Pipelines</td></tr>
+          <tr><td>Website pricing figures, FAQ content, copy</td><td class="mono">solterra-landing-au-solarfirst.html</td><td>Edit the file directly</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s3">
+    <h2><span class="stepnum">03</span>Daily checklist</h2>
+    <ul class="checklist">
+      <li>n8n → Executions: any failed runs (red)? Open one, note which node failed, check §5.</li>
+      <li>HubSpot → Deals: any "Qualified – Ready to Book" sitting untouched? A human should be moving these to a booked call within the day.</li>
+      <li>Telegram ops group: any escalation alerts sitting unanswered?</li>
+      <li>Spot-check one AI conversation from the last 24h (HubSpot contact → notes) — is the tone and qualification logic still on-brand and accurate?</li>
+    </ul>
+  </section>
+
+  <section id="s4">
+    <h2><span class="stepnum">04</span>Weekly / monthly checklist</h2>
+    <ul class="checklist">
+      <li><b>Weekly:</b> review nurture-drip conversions — how many cold leads moved to booked this week?</li>
+      <li><b>Weekly:</b> confirm workflow 4 actually sent review requests for jobs marked Won, and recovery messages for Lost/no-shows.</li>
+      <li><b>Monthly:</b> check AI API usage/billing (Anthropic/Google AI Studio/xAI consoles) against expected volume — a spike often means a loop or malformed trigger, not more leads.</li>
+      <li><b>Monthly:</b> check Twilio balance and delivery logs for SMS fallback failures.</li>
+      <li><b>Every January:</b> STC rebate figures step down — update <code>STC_MESSAGE</code> in n8n `.env` and the pricing figures on the website (see §4 of the pricing reference in <code>workflow-diagram.html</code>).</li>
+      <li><b>Monthly:</b> HubSpot Free contact count — approaching 1,000 marketing contacts means it's time to plan the upgrade, not discover it mid-campaign.</li>
+    </ul>
+  </section>
+
+  <section id="s5">
+    <h2><span class="stepnum">05</span>Troubleshooting</h2>
+
+    <div class="symptom-card">
+      <div class="symptom">Website form/chat isn't creating HubSpot leads</div>
+      <div class="cause">Usually one of: webhook URL still the placeholder, workflow not Active, or CORS blocked in the browser.</div>
+      <div class="fix"><b>Fix:</b> Open <code>admin.html</code>, unlock it (see <code>Documentation/settings-access-guide.md</code>), then Test connection. A CORS failure message specifically points at the "Website Inbound" node's <code>Allowed Origins</code> setting in n8n.</div>
+    </div>
+
+    <div class="symptom-card">
+      <div class="symptom">AI replies are generic, wrong, or ignore known lead info</div>
+      <div class="cause">System prompt not reflecting current service area/pricing, or the wrong AI provider is active without its key configured (silently falling back to a generic error reply).</div>
+      <div class="fix"><b>Fix:</b> Check "Build AI Request" node output in the failed Execution — confirm <code>provider</code> matches what you expect and its API key exists in <code>.env</code>.</div>
+    </div>
+
+    <div class="symptom-card">
+      <div class="symptom">Reminders (24h/1h) never fire</div>
+      <div class="cause">Deal's <code>appointment_datetime</code> property never got set, or workflow 2 isn't Active.</div>
+      <div class="fix"><b>Fix:</b> Confirm the HubSpot Meeting actually created a Deal association, and that workflow 2's "Find New Meetings" search window (last 20 minutes) isn't being missed by a slow booking sync.</div>
+    </div>
+
+    <div class="symptom-card">
+      <div class="symptom">Review requests or recovery follow-ups not sending</div>
+      <div class="cause">Deal stage ID in <code>.env</code> doesn't exactly match HubSpot's actual internal stage ID (labels can look identical while the internal ID differs).</div>
+      <div class="fix"><b>Fix:</b> HubSpot API → <code>GET /crm/v3/pipelines/deals</code> → confirm <code>HUBSPOT_STAGE_WON</code> / <code>HUBSPOT_STAGE_LOST</code> match exactly.</div>
+    </div>
+
+    <div class="symptom-card">
+      <div class="symptom">Facebook/Instagram messages never reach the AI agent</div>
+      <div class="cause">Page Access Token expired (short-lived tokens expire — use a long-lived or System User token), or the Instagram account isn't actually linked to the same Page as the app.</div>
+      <div class="fix"><b>Fix:</b> Re-generate the token in Meta's dashboard, confirm IG Business account link under Page settings, re-save in n8n <code>.env</code>.</div>
+    </div>
+  </section>
+
+  <section id="s6">
+    <h2><span class="stepnum">06</span>Change procedures</h2>
+    <h3>Update pricing</h3>
+    <ol class="steps">
+      <li>Edit the Pricing section directly in <code>solterra-landing-au-solarfirst.html</code>.</li>
+      <li>If the AI should quote these numbers in conversation, also update the "Build AI Request" node's system prompt in n8n.</li>
+    </ol>
+    <h3>Add a team member to escalation alerts</h3>
+    <ol class="steps">
+      <li>Add them to the Telegram ops group directly — no code change needed, the alert already targets the whole group via <code>TELEGRAM_OPS_CHAT_ID</code>.</li>
+    </ol>
+    <h3>Switch the default AI provider</h3>
+    <ol class="steps">
+      <li>Confirm the target provider's API key is set in n8n <code>.env</code>.</li>
+      <li>Change <code>AI_PROVIDER_DEFAULT</code> for all non-website channels, or change it per-visitor via the website's own Integration Settings.</li>
+    </ol>
+    <h3>Rotate a leaked or expiring API key</h3>
+    <ol class="steps">
+      <li>Generate the new key at the provider (don't delete the old one until the new one's confirmed working).</li>
+      <li>Update the value in n8n <code>.env</code>, save/restart n8n if your host requires it for env changes to take effect.</li>
+      <li>Run one test message through that specific channel, confirm it in n8n Executions, then revoke the old key.</li>
+    </ol>
+    <h3>Reskin the whole site for a new client</h3>
+    <p class="note">See <code>website/REBRAND-GUIDE.md</code> — a 5-step, ~15-minute process.</p>
+  </section>
+
+  <section id="s7">
+    <h2><span class="stepnum">07</span>Incident response</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Incident</th><th>Immediate action</th></tr></thead>
+        <tbody>
+          <tr><td>n8n instance is down</td><td>All channels stop responding silently (leads still land in Meta/website but get no reply). Restart n8n; check Telegram/Meta webhooks re-verify automatically once it's back — if not, re-save the webhook URL at the provider to force re-verification.</td></tr>
+          <tr><td>HubSpot free-tier limit hit (contacts, emails)</td><td>New contacts stop syncing correctly. Short-term: prioritise upgrading or archiving stale contacts. This is a "plan ahead" item, not a same-day fix — see §4 monthly check.</td></tr>
+          <tr><td>Unexpected AI API cost spike</td><td>Check n8n Executions for a runaway loop (e.g. a webhook re-triggering itself) before assuming it's just lead volume. Pause the workflow if costs are climbing faster than lead volume explains.</td></tr>
+          <tr><td>A channel's webhook stops verifying</td><td>Usually a verify-token mismatch after a token was regenerated. Re-check <code>META_VERIFY_TOKEN</code> / <code>WHATSAPP_VERIFY_TOKEN</code> match exactly between n8n <code>.env</code> and the provider's dashboard.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s8">
+    <h2><span class="stepnum">08</span>Roles &amp; responsibilities</h2>
+    <p class="note">Template — fill in for your team.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Area</th><th>Owner</th><th>Backup</th></tr></thead>
+        <tbody>
+          <tr><td>n8n / workflow health</td><td>—</td><td>—</td></tr>
+          <tr><td>HubSpot / CRM data</td><td>—</td><td>—</td></tr>
+          <tr><td>Escalated hot leads (Telegram)</td><td>—</td><td>—</td></tr>
+          <tr><td>Website content/pricing updates</td><td>—</td><td>—</td></tr>
+          <tr><td>API billing/keys</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s9">
+    <h2><span class="stepnum">09</span>Known limitations</h2>
+    <p class="lede">Documented on purpose, not hidden. These are the gaps between "logic verified" and "production-hardened."</p>
+    <ul class="checklist">
+      <li><b>No live end-to-end test yet.</b> The n8n workflows have been verified by simulating their code with mocked inputs (Node.js), not by actually running in n8n against real provider traffic. Run the full test table in <code>build-guide.html</code> §12 before relying on this for real leads.</li>
+      <li><b>No automatic retry on API failures.</b> If HubSpot, Anthropic, or any other call fails mid-execution, n8n stops that run — the lead is silently dropped rather than retried. Recommended before full production use: add "Continue on Fail" + a dedicated error-handling workflow that alerts the Telegram ops group on any failed execution.</li>
+      <li><b>No deduplication for duplicate webhook deliveries.</b> Meta and WhatsApp can occasionally redeliver the same webhook event; the workflow currently has no idempotency check, so a rare duplicate could create a second contact or send a duplicate reply.</li>
+      <li><b>No monitoring beyond the hot-lead Telegram alert.</b> A silent failure in qualification or a stalled drip wouldn't page anyone — the daily checklist in §3 is currently the only safety net.</li>
+      <li><b>Single point of failure.</b> Everything routes through one n8n instance with no documented backup/failover.</li>
+    </ul>
+    <div class="callout warn"><b>Recommendation:</b> treat §3's daily checklist as mandatory, not optional, until the retry/monitoring gaps above are closed — it's currently doing the job that automated alerting should be doing.</div>
+  </section>
+
+  <section id="s10">
+    <h2><span class="stepnum">10</span>Document history</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Rev</th><th>Date</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td>01</td><td>12 Aug 2026</td><td>Initial SOP — consolidates configuration across n8n, HubSpot, website, and all three AI providers.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Companion documents: <code>build-guide.html</code> (one-time setup), <code>workflow-diagram.html</code> (architecture + economics), <code>website/REBRAND-GUIDE.md</code> (reskinning for a new client). Update this file's §10 whenever a configuration changes.
+  </footer>
+
+</main>

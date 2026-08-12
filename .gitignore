@@ -1,0 +1,18 @@
+# Real credentials - never commit an actual .env, only the template stays tracked
+.env
+.env.local
+*.env
+!Configuration/.env.example
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs / temp
+*.log
+.tmp/

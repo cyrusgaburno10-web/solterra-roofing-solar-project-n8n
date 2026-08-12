@@ -1,0 +1,541 @@
+{
+  "name": "02 - Booking Confirmation and Reminders",
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "nodes": [
+    {
+      "id": "trigger-15min",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": {
+        "rule": { "interval": [ { "field": "minutes", "minutesInterval": 15 } ] }
+      }
+    },
+    {
+      "id": "http-find-new-meetings",
+      "name": "Find New Meetings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, -200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/meetings/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterGroups: [ { filters: [ { propertyName: 'hs_createdate', operator: 'GTE', value: String(Date.now() - 20*60*1000) } ] } ], properties: ['hs_meeting_start_time'] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "split-new-meetings",
+      "name": "Split New Meetings",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [480, -200],
+      "parameters": { "fieldToSplitOut": "results" }
+    },
+    {
+      "id": "http-meeting-contact",
+      "name": "Get Meeting Contact Assoc",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, -200],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v3/objects/meetings/{{ $json.id }}?associations=contacts",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-extract-contact-a",
+      "name": "Extract Contact ID (A)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, -200],
+      "parameters": {
+        "jsCode": "const meetingStart = $json.properties.hs_meeting_start_time;\nconst assoc = $json.associations && $json.associations.contacts && $json.associations.contacts.results[0];\nreturn { json: { contactId: assoc ? assoc.id : null, meetingStart } };"
+      }
+    },
+    {
+      "id": "http-contact-deal-a",
+      "name": "Get Contact's Deal Assoc",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1140, -200],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v4/objects/contacts/{{ $json.contactId }}/associations/deals",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-prep-deal-update",
+      "name": "Prep Deal Update (New Meeting)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, -200],
+      "parameters": {
+        "jsCode": "const dealId = $json.results && $json.results[0] && $json.results[0].toObjectId;\nconst prev = $('Extract Contact ID (A)').item.json;\nreturn { json: { dealId, contactId: prev.contactId, meetingStart: prev.meetingStart } };"
+      }
+    },
+    {
+      "id": "http-update-deal-appt",
+      "name": "Update Deal - Appointment Set",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1580, -200],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $json.dealId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { appointment_datetime: $json.meetingStart, dealstage: $env.HUBSPOT_STAGE_BOOKED, confirmation_sent: 'false' } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-contact-info-a",
+      "name": "Get Contact Channel Info (A)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, -200],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $('Prep Deal Update (New Meeting)').item.json.contactId }}?properties=firstname,preferred_channel,external_chat_id,phone",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-build-send-confirm",
+      "name": "Build Send - Confirmation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2020, -200],
+      "parameters": {
+        "jsCode": "const p = $json.properties;\nconst deal = $('Prep Deal Update (New Meeting)').item.json;\nconst when = new Date(Number(deal.meetingStart)).toLocaleString('en-AU', { timeZone: 'Australia/Sydney', dateStyle: 'full', timeStyle: 'short' });\nconst text = `G'day ${p.firstname || ''}, you're booked in for ${when}. We'll text a reminder closer to the time. Reply here if you need to reschedule.`;\nconst channel = (p.external_chat_id || '').split(':')[0] || 'none';\nconst id = (p.external_chat_id || '').split(':')[1] || '';\n\nreturn { json: { dealId: deal.dealId, channel, id, phone: p.phone, text } };"
+      }
+    },
+    {
+      "id": "if-has-channel-a",
+      "name": "Has Chat Channel? (A)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2240, -200],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ ['telegram','meta','instagram','whatsapp'].includes($json.channel) }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-send-chat-a",
+      "name": "Send Chat Message (A)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2460, -280],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.channel === 'telegram' ? 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' : ($json.channel === 'whatsapp' ? 'https://graph.facebook.com/v19.0/' + $env.WHATSAPP_PHONE_NUMBER_ID + '/messages' : 'https://graph.facebook.com/v19.0/me/messages?access_token=' + $env.META_PAGE_ACCESS_TOKEN) }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "={{ $json.channel === 'whatsapp' ? 'Bearer ' + $env.WHATSAPP_ACCESS_TOKEN : '' }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.channel === 'telegram' ? JSON.stringify({ chat_id: $json.id, text: $json.text }) : ($json.channel === 'whatsapp' ? JSON.stringify({ messaging_product: 'whatsapp', to: $json.id, type: 'text', text: { body: $json.text } }) : JSON.stringify({ recipient: { id: $json.id }, message: { text: $json.text } })) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-send-sms-a",
+      "name": "Send SMS Fallback (A)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2460, -120],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "To", "value": "={{ $json.phone }}" },
+            { "name": "From", "value": "={{ $env.TWILIO_FROM_NUMBER }}" },
+            { "name": "Body", "value": "={{ $json.text }}" }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": { "httpBasicAuth": { "id": "twilio-basic-auth", "name": "Twilio Basic Auth" } }
+    },
+    {
+      "id": "http-mark-confirm-sent",
+      "name": "Mark Confirmation Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2680, -200],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $('Build Send - Confirmation').item.json.dealId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { confirmation_sent: 'true' } }) }}",
+        "options": {}
+      }
+    },
+
+    {
+      "id": "http-find-24h",
+      "name": "Find Deals Due 24h Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 100],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterGroups: [ { filters: [ { propertyName: 'dealstage', operator: 'EQ', value: $env.HUBSPOT_STAGE_BOOKED }, { propertyName: 'appointment_datetime', operator: 'BETWEEN', value: String(Date.now() + 23.75*3600*1000), highValue: String(Date.now() + 24.25*3600*1000) }, { propertyName: 'reminder_24h_sent', operator: 'NEQ', value: 'true' } ] } ], properties: ['appointment_datetime'] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "split-24h",
+      "name": "Split 24h Deals",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [480, 100],
+      "parameters": { "fieldToSplitOut": "results" }
+    },
+    {
+      "id": "http-deal-contact-24h",
+      "name": "Get Deal Contact Assoc (24h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 100],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v4/objects/deals/{{ $json.id }}/associations/contacts",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-extract-contact-24h",
+      "name": "Extract Contact ID (24h)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 100],
+      "parameters": {
+        "jsCode": "const dealId = $('Split 24h Deals').item.json.id;\nconst contactId = $json.results && $json.results[0] && $json.results[0].toObjectId;\nreturn { json: { dealId, contactId } };"
+      }
+    },
+    {
+      "id": "http-contact-info-24h",
+      "name": "Get Contact Channel Info (24h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1140, 100],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.contactId }}?properties=firstname,preferred_channel,external_chat_id,phone",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-build-send-24h",
+      "name": "Build Send - 24h Reminder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, 100],
+      "parameters": {
+        "jsCode": "const p = $json.properties;\nconst prev = $('Extract Contact ID (24h)').item.json;\nconst text = `Reminder: your roofing/solar appointment is tomorrow. Our rep will call ahead. Reply here if you need to reschedule.`;\nconst channel = (p.external_chat_id || '').split(':')[0] || 'none';\nconst id = (p.external_chat_id || '').split(':')[1] || '';\nreturn { json: { dealId: prev.dealId, channel, id, phone: p.phone, text, markField: 'reminder_24h_sent' } };"
+      }
+    },
+    {
+      "id": "if-has-channel-24h",
+      "name": "Has Chat Channel? (24h)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1580, 100],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ ['telegram','meta','instagram','whatsapp'].includes($json.channel) }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-send-chat-24h",
+      "name": "Send Chat Message (24h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 20],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.channel === 'telegram' ? 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' : ($json.channel === 'whatsapp' ? 'https://graph.facebook.com/v19.0/' + $env.WHATSAPP_PHONE_NUMBER_ID + '/messages' : 'https://graph.facebook.com/v19.0/me/messages?access_token=' + $env.META_PAGE_ACCESS_TOKEN) }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "={{ $json.channel === 'whatsapp' ? 'Bearer ' + $env.WHATSAPP_ACCESS_TOKEN : '' }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.channel === 'telegram' ? JSON.stringify({ chat_id: $json.id, text: $json.text }) : ($json.channel === 'whatsapp' ? JSON.stringify({ messaging_product: 'whatsapp', to: $json.id, type: 'text', text: { body: $json.text } }) : JSON.stringify({ recipient: { id: $json.id }, message: { text: $json.text } })) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-send-sms-24h",
+      "name": "Send SMS Fallback (24h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 180],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "form-urlencoded",
+        "bodyParameters": { "parameters": [ { "name": "To", "value": "={{ $json.phone }}" }, { "name": "From", "value": "={{ $env.TWILIO_FROM_NUMBER }}" }, { "name": "Body", "value": "={{ $json.text }}" } ] },
+        "options": {}
+      },
+      "credentials": { "httpBasicAuth": { "id": "twilio-basic-auth", "name": "Twilio Basic Auth" } }
+    },
+    {
+      "id": "http-mark-24h-sent",
+      "name": "Mark 24h Reminder Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2020, 100],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $('Build Send - 24h Reminder').item.json.dealId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { reminder_24h_sent: 'true' } }) }}",
+        "options": {}
+      }
+    },
+
+    {
+      "id": "http-find-1h",
+      "name": "Find Deals Due 1h Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 420],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterGroups: [ { filters: [ { propertyName: 'dealstage', operator: 'EQ', value: $env.HUBSPOT_STAGE_BOOKED }, { propertyName: 'appointment_datetime', operator: 'BETWEEN', value: String(Date.now() + 0.75*3600*1000), highValue: String(Date.now() + 1.25*3600*1000) }, { propertyName: 'reminder_1h_sent', operator: 'NEQ', value: 'true' } ] } ], properties: ['appointment_datetime'] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "split-1h",
+      "name": "Split 1h Deals",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [480, 420],
+      "parameters": { "fieldToSplitOut": "results" }
+    },
+    {
+      "id": "http-deal-contact-1h",
+      "name": "Get Deal Contact Assoc (1h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 420],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v4/objects/deals/{{ $json.id }}/associations/contacts",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-extract-contact-1h",
+      "name": "Extract Contact ID (1h)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 420],
+      "parameters": {
+        "jsCode": "const dealId = $('Split 1h Deals').item.json.id;\nconst contactId = $json.results && $json.results[0] && $json.results[0].toObjectId;\nreturn { json: { dealId, contactId } };"
+      }
+    },
+    {
+      "id": "http-contact-info-1h",
+      "name": "Get Contact Channel Info (1h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1140, 420],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.contactId }}?properties=firstname,preferred_channel,external_chat_id,phone",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-build-send-1h",
+      "name": "Build Send - 1h Reminder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, 420],
+      "parameters": {
+        "jsCode": "const p = $json.properties;\nconst prev = $('Extract Contact ID (1h)').item.json;\nconst text = `We're on our way - see you in about an hour for your roofing/solar appointment. Reply here if anything's changed.`;\nconst channel = (p.external_chat_id || '').split(':')[0] || 'none';\nconst id = (p.external_chat_id || '').split(':')[1] || '';\nreturn { json: { dealId: prev.dealId, channel, id, phone: p.phone, text, markField: 'reminder_1h_sent' } };"
+      }
+    },
+    {
+      "id": "if-has-channel-1h",
+      "name": "Has Chat Channel? (1h)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1580, 420],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ ['telegram','meta','instagram','whatsapp'].includes($json.channel) }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-send-chat-1h",
+      "name": "Send Chat Message (1h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 340],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.channel === 'telegram' ? 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' : ($json.channel === 'whatsapp' ? 'https://graph.facebook.com/v19.0/' + $env.WHATSAPP_PHONE_NUMBER_ID + '/messages' : 'https://graph.facebook.com/v19.0/me/messages?access_token=' + $env.META_PAGE_ACCESS_TOKEN) }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "={{ $json.channel === 'whatsapp' ? 'Bearer ' + $env.WHATSAPP_ACCESS_TOKEN : '' }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.channel === 'telegram' ? JSON.stringify({ chat_id: $json.id, text: $json.text }) : ($json.channel === 'whatsapp' ? JSON.stringify({ messaging_product: 'whatsapp', to: $json.id, type: 'text', text: { body: $json.text } }) : JSON.stringify({ recipient: { id: $json.id }, message: { text: $json.text } })) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-send-sms-1h",
+      "name": "Send SMS Fallback (1h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "form-urlencoded",
+        "bodyParameters": { "parameters": [ { "name": "To", "value": "={{ $json.phone }}" }, { "name": "From", "value": "={{ $env.TWILIO_FROM_NUMBER }}" }, { "name": "Body", "value": "={{ $json.text }}" } ] },
+        "options": {}
+      },
+      "credentials": { "httpBasicAuth": { "id": "twilio-basic-auth", "name": "Twilio Basic Auth" } }
+    },
+    {
+      "id": "http-mark-1h-sent",
+      "name": "Mark 1h Reminder Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2020, 420],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $('Build Send - 1h Reminder').item.json.dealId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { reminder_1h_sent: 'true' } }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": {
+      "main": [
+        [
+          { "node": "Find New Meetings", "type": "main", "index": 0 },
+          { "node": "Find Deals Due 24h Reminder", "type": "main", "index": 0 },
+          { "node": "Find Deals Due 1h Reminder", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Find New Meetings": { "main": [[{ "node": "Split New Meetings", "type": "main", "index": 0 }]] },
+    "Split New Meetings": { "main": [[{ "node": "Get Meeting Contact Assoc", "type": "main", "index": 0 }]] },
+    "Get Meeting Contact Assoc": { "main": [[{ "node": "Extract Contact ID (A)", "type": "main", "index": 0 }]] },
+    "Extract Contact ID (A)": { "main": [[{ "node": "Get Contact's Deal Assoc", "type": "main", "index": 0 }]] },
+    "Get Contact's Deal Assoc": { "main": [[{ "node": "Prep Deal Update (New Meeting)", "type": "main", "index": 0 }]] },
+    "Prep Deal Update (New Meeting)": { "main": [[{ "node": "Update Deal - Appointment Set", "type": "main", "index": 0 }]] },
+    "Update Deal - Appointment Set": { "main": [[{ "node": "Get Contact Channel Info (A)", "type": "main", "index": 0 }]] },
+    "Get Contact Channel Info (A)": { "main": [[{ "node": "Build Send - Confirmation", "type": "main", "index": 0 }]] },
+    "Build Send - Confirmation": { "main": [[{ "node": "Has Chat Channel? (A)", "type": "main", "index": 0 }]] },
+    "Has Chat Channel? (A)": {
+      "main": [
+        [{ "node": "Send Chat Message (A)", "type": "main", "index": 0 }],
+        [{ "node": "Send SMS Fallback (A)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Chat Message (A)": { "main": [[{ "node": "Mark Confirmation Sent", "type": "main", "index": 0 }]] },
+    "Send SMS Fallback (A)": { "main": [[{ "node": "Mark Confirmation Sent", "type": "main", "index": 0 }]] },
+
+    "Find Deals Due 24h Reminder": { "main": [[{ "node": "Split 24h Deals", "type": "main", "index": 0 }]] },
+    "Split 24h Deals": { "main": [[{ "node": "Get Deal Contact Assoc (24h)", "type": "main", "index": 0 }]] },
+    "Get Deal Contact Assoc (24h)": { "main": [[{ "node": "Extract Contact ID (24h)", "type": "main", "index": 0 }]] },
+    "Extract Contact ID (24h)": { "main": [[{ "node": "Get Contact Channel Info (24h)", "type": "main", "index": 0 }]] },
+    "Get Contact Channel Info (24h)": { "main": [[{ "node": "Build Send - 24h Reminder", "type": "main", "index": 0 }]] },
+    "Build Send - 24h Reminder": { "main": [[{ "node": "Has Chat Channel? (24h)", "type": "main", "index": 0 }]] },
+    "Has Chat Channel? (24h)": {
+      "main": [
+        [{ "node": "Send Chat Message (24h)", "type": "main", "index": 0 }],
+        [{ "node": "Send SMS Fallback (24h)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Chat Message (24h)": { "main": [[{ "node": "Mark 24h Reminder Sent", "type": "main", "index": 0 }]] },
+    "Send SMS Fallback (24h)": { "main": [[{ "node": "Mark 24h Reminder Sent", "type": "main", "index": 0 }]] },
+
+    "Find Deals Due 1h Reminder": { "main": [[{ "node": "Split 1h Deals", "type": "main", "index": 0 }]] },
+    "Split 1h Deals": { "main": [[{ "node": "Get Deal Contact Assoc (1h)", "type": "main", "index": 0 }]] },
+    "Get Deal Contact Assoc (1h)": { "main": [[{ "node": "Extract Contact ID (1h)", "type": "main", "index": 0 }]] },
+    "Extract Contact ID (1h)": { "main": [[{ "node": "Get Contact Channel Info (1h)", "type": "main", "index": 0 }]] },
+    "Get Contact Channel Info (1h)": { "main": [[{ "node": "Build Send - 1h Reminder", "type": "main", "index": 0 }]] },
+    "Build Send - 1h Reminder": { "main": [[{ "node": "Has Chat Channel? (1h)", "type": "main", "index": 0 }]] },
+    "Has Chat Channel? (1h)": {
+      "main": [
+        [{ "node": "Send Chat Message (1h)", "type": "main", "index": 0 }],
+        [{ "node": "Send SMS Fallback (1h)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Chat Message (1h)": { "main": [[{ "node": "Mark 1h Reminder Sent", "type": "main", "index": 0 }]] },
+    "Send SMS Fallback (1h)": { "main": [[{ "node": "Mark 1h Reminder Sent", "type": "main", "index": 0 }]] }
+  }
+}

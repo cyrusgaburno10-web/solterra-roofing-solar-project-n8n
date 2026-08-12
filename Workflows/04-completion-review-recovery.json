@@ -1,0 +1,413 @@
+{
+  "name": "04 - Completion - Review and Recovery",
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "nodes": [
+    {
+      "id": "trigger-daily-10am",
+      "name": "Daily at 10am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": {
+        "rule": { "interval": [ { "field": "days", "daysInterval": 1, "triggerAtHour": 10, "triggerAtMinute": 0 } ] }
+      }
+    },
+
+    {
+      "id": "http-find-won",
+      "name": "Find Won Deals Needing Review",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, -160],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterGroups: [ { filters: [ { propertyName: 'dealstage', operator: 'EQ', value: $env.HUBSPOT_STAGE_WON }, { propertyName: 'review_requested', operator: 'NEQ', value: 'true' }, { propertyName: 'closedate', operator: 'LTE', value: String(Date.now() - 2*86400000) } ] } ], properties: ['job_type','quote_value'], limit: 100 }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "split-won",
+      "name": "Split Won Deals",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [440, -160],
+      "parameters": { "fieldToSplitOut": "results" }
+    },
+    {
+      "id": "http-won-contact",
+      "name": "Get Deal Contact Assoc (Won)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, -160],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v4/objects/deals/{{ $json.id }}/associations/contacts",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-extract-won",
+      "name": "Extract Deal + Contact (Won)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, -160],
+      "parameters": {
+        "jsCode": "const deal = $('Split Won Deals').item.json;\nconst contactId = $json.results && $json.results[0] && $json.results[0].toObjectId;\nreturn { json: { dealId: deal.id, jobType: deal.properties.job_type, contactId } };"
+      }
+    },
+    {
+      "id": "http-won-contact-info",
+      "name": "Get Contact Channel Info (Won)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, -160],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.contactId }}?properties=firstname,external_chat_id,phone",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-build-review-msg",
+      "name": "Build Review + Referral Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, -160],
+      "parameters": {
+        "jsCode": "const p = $json.properties;\nconst prev = $('Extract Deal + Contact (Won)').item.json;\nconst name = p.firstname || 'there';\nconst text = `Thanks for choosing us, ${name}! If you've got 30 seconds, a Google review really helps a small local crew: ${$env.GOOGLE_REVIEW_LINK}\\n\\nAlso - refer a mate and you both get $150 off. And if you know anyone chasing gutter guard, a battery add-on or a maintenance plan, we look after past customers first.`;\nconst channel = (p.external_chat_id || '').split(':')[0] || 'none';\nconst id = (p.external_chat_id || '').split(':')[1] || '';\nreturn { json: { dealId: prev.dealId, channel, id, phone: p.phone, text } };"
+      }
+    },
+    {
+      "id": "if-has-channel-won",
+      "name": "Has Chat Channel? (Won)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1540, -160],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ ['telegram','meta','instagram','whatsapp'].includes($json.channel) }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-send-chat-won",
+      "name": "Send Chat Message (Won)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, -240],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.channel === 'telegram' ? 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' : ($json.channel === 'whatsapp' ? 'https://graph.facebook.com/v19.0/' + $env.WHATSAPP_PHONE_NUMBER_ID + '/messages' : 'https://graph.facebook.com/v19.0/me/messages?access_token=' + $env.META_PAGE_ACCESS_TOKEN) }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "={{ $json.channel === 'whatsapp' ? 'Bearer ' + $env.WHATSAPP_ACCESS_TOKEN : '' }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.channel === 'telegram' ? JSON.stringify({ chat_id: $json.id, text: $json.text }) : ($json.channel === 'whatsapp' ? JSON.stringify({ messaging_product: 'whatsapp', to: $json.id, type: 'text', text: { body: $json.text } }) : JSON.stringify({ recipient: { id: $json.id }, message: { text: $json.text } })) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-send-sms-won",
+      "name": "Send SMS Fallback (Won)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, -80],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "form-urlencoded",
+        "bodyParameters": { "parameters": [ { "name": "To", "value": "={{ $json.phone }}" }, { "name": "From", "value": "={{ $env.TWILIO_FROM_NUMBER }}" }, { "name": "Body", "value": "={{ $json.text }}" } ] },
+        "options": {}
+      },
+      "credentials": { "httpBasicAuth": { "id": "twilio-basic-auth", "name": "Twilio Basic Auth" } }
+    },
+    {
+      "id": "http-mark-review-requested",
+      "name": "Mark Review Requested",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, -160],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $('Build Review + Referral Message').item.json.dealId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { review_requested: 'true' } }) }}",
+        "options": {}
+      }
+    },
+
+    {
+      "id": "http-find-lost",
+      "name": "Find Lost Deals Needing Recovery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 220],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterGroups: [ { filters: [ { propertyName: 'dealstage', operator: 'EQ', value: $env.HUBSPOT_STAGE_LOST }, { propertyName: 'recovery_touches', operator: 'LT', value: '3' } ] } ], properties: ['job_type','loss_reason','recovery_touches','last_recovery_sent'], limit: 100 }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "split-lost",
+      "name": "Split Lost Deals",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [440, 220],
+      "parameters": { "fieldToSplitOut": "results" }
+    },
+    {
+      "id": "code-compute-recovery-due",
+      "name": "Compute Recovery Due",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 220],
+      "parameters": {
+        "jsCode": "// Recovery cadence: touch 1 at +1 day after loss, touch 2 at +4 days, touch 3 at +9 days.\nconst gapMs = { 0: 1*86400000, 1: 4*86400000, 2: 9*86400000 };\nconst p = $json.properties;\nconst touches = Number(p.recovery_touches) || 0;\nconst lastSent = Number(p.last_recovery_sent) || 0;\nconst dueAt = lastSent + (gapMs[touches] || 9*86400000);\nconst isDue = Date.now() >= dueAt;\nreturn { json: { dealId: $json.id, jobType: p.job_type, lossReason: p.loss_reason || 'other', touches, isDue } };"
+      }
+    },
+    {
+      "id": "if-recovery-due",
+      "name": "Is Recovery Due?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 220],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ $json.isDue }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-lost-contact",
+      "name": "Get Deal Contact Assoc (Lost)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 220],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v4/objects/deals/{{ $json.dealId }}/associations/contacts",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-extract-lost",
+      "name": "Extract Contact ID (Lost)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 220],
+      "parameters": {
+        "jsCode": "const prev = $('Compute Recovery Due').item.json;\nconst contactId = $json.results && $json.results[0] && $json.results[0].toObjectId;\nreturn { json: { ...prev, contactId } };"
+      }
+    },
+    {
+      "id": "http-lost-contact-info",
+      "name": "Get Contact Channel Info (Lost)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 220],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.contactId }}?properties=firstname,external_chat_id,phone",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" } ] },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-pick-recovery-msg",
+      "name": "Pick Recovery Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 220],
+      "parameters": {
+        "jsCode": "const p = $json.properties;\nconst prev = $('Extract Contact ID (Lost)').item.json;\nconst name = p.firstname || 'there';\n\nconst byReason = {\n  no_show: `Hi ${name}, we missed you for your appointment - totally understand things come up. Want to grab a new time? Here's the link: ${$env.RESCHEDULE_LINK}`,\n  price_objection: `Hi ${name}, following up on your quote. A lot of customers spread the cost with Brighte or Plenti - happy to send details if that helps make the numbers work.`,\n  timing: `Hi ${name}, no rush at all - just flagging we're still around whenever the timing's right. Feel free to reach out.`,\n  chose_competitor: `Hi ${name}, thanks for considering us. If anything changes or you need a second opinion down the track, we're here.`,\n  other: `Hi ${name}, just checking in on the quote we sent - happy to answer any questions.`\n};\n\nconst text = byReason[prev.lossReason] || byReason.other;\nconst channel = (p.external_chat_id || '').split(':')[0] || 'none';\nconst id = (p.external_chat_id || '').split(':')[1] || '';\nreturn { json: { ...prev, channel, id, phone: p.phone, text } };"
+      }
+    },
+    {
+      "id": "if-has-channel-lost",
+      "name": "Has Chat Channel? (Lost)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1980, 220],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ ['telegram','meta','instagram','whatsapp'].includes($json.channel) }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-send-chat-lost",
+      "name": "Send Chat Message (Lost)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 140],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.channel === 'telegram' ? 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' : ($json.channel === 'whatsapp' ? 'https://graph.facebook.com/v19.0/' + $env.WHATSAPP_PHONE_NUMBER_ID + '/messages' : 'https://graph.facebook.com/v19.0/me/messages?access_token=' + $env.META_PAGE_ACCESS_TOKEN) }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "={{ $json.channel === 'whatsapp' ? 'Bearer ' + $env.WHATSAPP_ACCESS_TOKEN : '' }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.channel === 'telegram' ? JSON.stringify({ chat_id: $json.id, text: $json.text }) : ($json.channel === 'whatsapp' ? JSON.stringify({ messaging_product: 'whatsapp', to: $json.id, type: 'text', text: { body: $json.text } }) : JSON.stringify({ recipient: { id: $json.id }, message: { text: $json.text } })) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-send-sms-lost",
+      "name": "Send SMS Fallback (Lost)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "form-urlencoded",
+        "bodyParameters": { "parameters": [ { "name": "To", "value": "={{ $json.phone }}" }, { "name": "From", "value": "={{ $env.TWILIO_FROM_NUMBER }}" }, { "name": "Body", "value": "={{ $json.text }}" } ] },
+        "options": {}
+      },
+      "credentials": { "httpBasicAuth": { "id": "twilio-basic-auth", "name": "Twilio Basic Auth" } }
+    },
+    {
+      "id": "http-update-recovery-touch",
+      "name": "Update Deal - Recovery Touch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2420, 220],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $('Pick Recovery Message').item.json.dealId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { recovery_touches: String($('Pick Recovery Message').item.json.touches + 1), last_recovery_sent: Date.now() } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "if-reached-3-touches",
+      "name": "Reached 3 Touches?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2640, 220],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "leftValue": "={{ $('Pick Recovery Message').item.json.touches + 1 >= 3 }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "http-downgrade-to-nurture",
+      "name": "Downgrade to Nurture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, 220],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $('Pick Recovery Message').item.json.dealId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { dealstage: $env.HUBSPOT_STAGE_NURTURE } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-downgrade-contact",
+      "name": "Downgrade Contact to Cold",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3080, 220],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $('Extract Contact ID (Lost)').item.json.contactId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "Authorization", "value": "=Bearer {{ $env.HUBSPOT_TOKEN }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: { lead_score: 'cold', drip_stage: 'day0', last_ai_contact_at: Date.now() } }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Daily at 10am": {
+      "main": [
+        [
+          { "node": "Find Won Deals Needing Review", "type": "main", "index": 0 },
+          { "node": "Find Lost Deals Needing Recovery", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Find Won Deals Needing Review": { "main": [[{ "node": "Split Won Deals", "type": "main", "index": 0 }]] },
+    "Split Won Deals": { "main": [[{ "node": "Get Deal Contact Assoc (Won)", "type": "main", "index": 0 }]] },
+    "Get Deal Contact Assoc (Won)": { "main": [[{ "node": "Extract Deal + Contact (Won)", "type": "main", "index": 0 }]] },
+    "Extract Deal + Contact (Won)": { "main": [[{ "node": "Get Contact Channel Info (Won)", "type": "main", "index": 0 }]] },
+    "Get Contact Channel Info (Won)": { "main": [[{ "node": "Build Review + Referral Message", "type": "main", "index": 0 }]] },
+    "Build Review + Referral Message": { "main": [[{ "node": "Has Chat Channel? (Won)", "type": "main", "index": 0 }]] },
+    "Has Chat Channel? (Won)": {
+      "main": [
+        [{ "node": "Send Chat Message (Won)", "type": "main", "index": 0 }],
+        [{ "node": "Send SMS Fallback (Won)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Chat Message (Won)": { "main": [[{ "node": "Mark Review Requested", "type": "main", "index": 0 }]] },
+    "Send SMS Fallback (Won)": { "main": [[{ "node": "Mark Review Requested", "type": "main", "index": 0 }]] },
+
+    "Find Lost Deals Needing Recovery": { "main": [[{ "node": "Split Lost Deals", "type": "main", "index": 0 }]] },
+    "Split Lost Deals": { "main": [[{ "node": "Compute Recovery Due", "type": "main", "index": 0 }]] },
+    "Compute Recovery Due": { "main": [[{ "node": "Is Recovery Due?", "type": "main", "index": 0 }]] },
+    "Is Recovery Due?": { "main": [[{ "node": "Get Deal Contact Assoc (Lost)", "type": "main", "index": 0 }], []] },
+    "Get Deal Contact Assoc (Lost)": { "main": [[{ "node": "Extract Contact ID (Lost)", "type": "main", "index": 0 }]] },
+    "Extract Contact ID (Lost)": { "main": [[{ "node": "Get Contact Channel Info (Lost)", "type": "main", "index": 0 }]] },
+    "Get Contact Channel Info (Lost)": { "main": [[{ "node": "Pick Recovery Message", "type": "main", "index": 0 }]] },
+    "Pick Recovery Message": { "main": [[{ "node": "Has Chat Channel? (Lost)", "type": "main", "index": 0 }]] },
+    "Has Chat Channel? (Lost)": {
+      "main": [
+        [{ "node": "Send Chat Message (Lost)", "type": "main", "index": 0 }],
+        [{ "node": "Send SMS Fallback (Lost)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Chat Message (Lost)": { "main": [[{ "node": "Update Deal - Recovery Touch", "type": "main", "index": 0 }]] },
+    "Send SMS Fallback (Lost)": { "main": [[{ "node": "Update Deal - Recovery Touch", "type": "main", "index": 0 }]] },
+    "Update Deal - Recovery Touch": { "main": [[{ "node": "Reached 3 Touches?", "type": "main", "index": 0 }]] },
+    "Reached 3 Touches?": { "main": [[{ "node": "Downgrade to Nurture", "type": "main", "index": 0 }], []] },
+    "Downgrade to Nurture": { "main": [[{ "node": "Downgrade Contact to Cold", "type": "main", "index": 0 }]] }
+  }
+}

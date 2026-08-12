@@ -1,0 +1,12 @@
+# Netlify site config. This project has no build step - it's plain
+# HTML/CSS/JS - so the only thing this file needs to declare is the
+# publish directory and the edge function that gates admin.html.
+# See netlify/edge-functions/admin-auth.js and
+# Documentation/deploy-lockdown-guide.md.
+
+[build]
+  publish = "."
+
+[[edge_functions]]
+  path = "/admin.html"
+  function = "admin-auth"
